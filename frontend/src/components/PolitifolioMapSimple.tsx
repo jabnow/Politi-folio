@@ -183,7 +183,7 @@ function Map2DView({
   setHoveredInfo: (info: string | null) => void;
 }) {
   const HQ_LOCATION = { lat: 51.5074, lng: -0.1278 }; // London
-  const CURRENT_LOCATION = { lat: 25.0330, lng: 121.5654 }; // Taipei
+  const CURRENT_LOCATION = { lat: 40.4406, lng: -79.9959 }; // Pittsburgh
 
   const getRiskColor = (riskScore: number): string => {
     if (riskScore >= 80) return '#dc2626'; // red-600
@@ -374,7 +374,7 @@ export function PolitifolioMapSimple({
 
   // Prepare Arcs Data (Transactions)
   const HQ_LOCATION = { lat: 51.5074, lng: -0.1278 }; // London (Global HQ)
-  const CURRENT_LOCATION = { lat: 25.0330, lng: 121.5654 }; // Taipei (User Location)
+  const CURRENT_LOCATION = { lat: 40.4406, lng: -79.9959 }; // Pittsburgh (User Location)
 
   // Load GeoJSON for 3D map country hover
   const [geoJsonData, setGeoJsonData] = useState<any[]>([]);
@@ -424,13 +424,13 @@ export function PolitifolioMapSimple({
       data: {} as any
     });
 
-    // Add Current Location (Taipei)
+    // Add Current Location (Pittsburgh)
     eventPoints.push({
       lat: CURRENT_LOCATION.lat,
       lng: CURRENT_LOCATION.lng,
       size: 1.2,
       color: '#10b981', // Green
-      name: 'Current Location (Taipei)',
+      name: 'Current Location (Pittsburgh)',
       type: 'user',
       data: {} as any
     });
