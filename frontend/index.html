@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GeoPulse Coin - Compliance Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; padding: 20px; max-width: 800px; margin: auto; }
+        .container { border: 1px solid #ccc; padding: 20px; border-radius: 5px; margin-bottom: 20px; }
+        input, select, textarea { width: 100%; padding: 8px; margin: 5px 0; }
+        button { padding: 10px 20px; background-color: #007bff; color: white; border: none; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        .result { margin-top: 10px; padding: 10px; background-color: #f0f0f0; border-radius: 5px; }
+        .error { color: red; }
+        .success { color: green; }
+    </style>
+</head>
+<body>
+
+    <h1>GeoPulse Coin Compliance Dashboard</h1>
+
+    <div class="container">
+        <h2>Submit Transaction</h2>
+        <form id="txForm">
+            <label>Sender Name:</label>
+            <input type="text" id="senderName" value="Alice Corp">
+            
+            <label>Sender Country:</label>
+            <input type="text" id="senderCountry" value="US">
+
+            <label>Receiver Name:</label>
+            <input type="text" id="receiverName" value="Bob Ltd">
+            
+            <label>Receiver Country (Try 'NK' for sanctioned):</label>
+            <input type="text" id="receiverCountry" value="FR">
+
+            <label>Amount (GEO):</label>
+            <input type="number" id="amount" value="100">
+
+            <label>Destination Address (XRPL):</label>
+            <input type="text" id="destination" value="rPT1Sjq2eGrBTHTFdyuJpvQq8m5sF8TVJ">
+
+            <button type="button" onclick="checkCompliance()">Check Compliance</button>
+            <button type="button" onclick="submitTransaction()">Submit Transaction</button>
+        </form>
+        <div id="txResult" class="result" style="display:none;"></div>
+    </div>
+
+    <div class="container">
+        <h2>Geopolitical Event Analysis</h2>
+        <textarea id="eventText" rows="4" placeholder="Enter news text here..."></textarea>
+        <button onclick="analyzeText()">Analyze Risk</button>
+        <div id="analysisResult" class="result" style="display:none;"></div>
+    </div>
+
+    <script>
+        const API_URL = "http://localhost:8000/api/v1";
+
+        async function checkCompliance() {
+            const name = document.getElementById('receiverName').value;
+            const country = document.getElementById('receiverCountry').value;
+            
+            try {
+                const response = await fetch(`${API_URL}/compliance/check`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, country })
+                });
+                const data = await response.json();
+                
+                const resultDiv = document.getElementById('txResult');
+                resultDiv.style.display = 'block';
+                resultDiv.innerHTML = `
+                    <h3>Compliance Check Result:</h3>
+                    <p><strong>Sanctioned:</strong> ${data.sanctioned}</p>
+                    <p><strong>Reason:</strong> ${data.reason}</p>
+                    <p><strong>Country Risk Score:</strong> ${data.country_risk_score}</p>
+                    <p><strong>Status:</strong> <span class="${data.status === 'CLEARED' ? 'success' : 'error'}">${data.status}</span></p>
+                `;
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to check compliance');
+            }
+        }
+
+        async function submitTransaction() {
+            const senderName = document.getElementById('senderName').value;
+            const senderCountry = document.getElementById('senderCountry').value;
+            const receiverName = document.getElementById('receiverName').value;
+            const receiverCountry = document.getElementById('receiverCountry').value;
+            const amount = document.getElementById('amount').value;
+            const destination = document.getElementById('destination').value;
+
+            try {
+                const response = await fetch(`${API_URL}/transactions/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        sender_name: senderName,
+                        sender_country: senderCountry,
+                        receiver_name: receiverName,
+                        receiver_country: receiverCountry,
+                        amount: amount,
+                        destination: destination
+                    })
+                });
+
+                const data = await response.json();
+                const resultDiv = document.getElementById('txResult');
+                resultDiv.style.display = 'block';
+
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <h3 class="success">Transaction Submitted!</h3>
+                        <p><strong>TX Hash:</strong> ${data.tx_hash}</p>
+                        <p><strong>Status:</strong> ${data.status}</p>
+                        <p><strong>Compliance Check:</strong> ${data.compliance_check_passed ? 'Passed' : 'Failed'}</p>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <h3 class="error">Transaction Failed</h3>
+                        <p><strong>Error:</strong> ${data.detail || 'Unknown error'}</p>
+                    `;
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to submit transaction');
+            }
+        }
+
+        async function analyzeText() {
+            const text = document.getElementById('eventText').value;
+            try {
+                const response = await fetch(`${API_URL}/compliance/analyze-text`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text })
+                });
+                const data = await response.json();
+                
+                const resultDiv = document.getElementById('analysisResult');
+                resultDiv.style.display = 'block';
+                resultDiv.innerHTML = `
+                    <h3>Analysis Result:</h3>
+                    <p><strong>Risk Level:</strong> ${data.risk_level}</p>
+                    <p><strong>Keywords:</strong> ${data.keywords.join(', ')}</p>
+                    <p><strong>Summary:</strong> ${data.summary}</p>
+                `;
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to analyze text');
+            }
+        }
+    </script>
+
+</body>
+</html>
