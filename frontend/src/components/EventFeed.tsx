@@ -134,9 +134,9 @@ export function EventFeed() {
     : events.filter(e => e.severity === filter);
 
   return (
-    <div className="h-full flex flex-col bg-zinc-950 p-4">
-      <Card className="bg-zinc-900 border-zinc-800 p-4 mb-4">
-        <div className="flex items-center justify-between">
+    <div className="min-h-full flex flex-col bg-zinc-950 p-4 overflow-auto">
+      <Card className="bg-zinc-900 border-zinc-800 p-4 mb-4 shrink-0">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className="bg-purple-500/10 p-2 rounded-lg">
               <Radio className="w-5 h-5 text-purple-500 animate-pulse" />
@@ -182,7 +182,7 @@ export function EventFeed() {
         </div>
       </Card>
 
-      <div className="flex-1 overflow-y-auto space-y-3 pr-2">
+      <div className="flex-1 min-h-0 overflow-y-auto space-y-3 pr-2">
         <AnimatePresence>
           {filteredEvents.map((event, idx) => (
             <motion.div
@@ -254,8 +254,8 @@ export function EventFeed() {
       </div>
 
       {/* Summary Stats */}
-      <Card className="bg-zinc-900 border-zinc-800 p-4 mt-4">
-        <div className="grid grid-cols-4 gap-4">
+      <Card className="bg-zinc-900 border-zinc-800 p-4 mt-4 shrink-0">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <div className="text-center">
             <div className="text-xl font-bold text-white">{events.length}</div>
             <div className="text-xs text-zinc-400">Total Events</div>

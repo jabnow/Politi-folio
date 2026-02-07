@@ -6,7 +6,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=postgresql://postgres:password@db:5432/geopulse
+      - DATABASE_URL=postgresql://postgres:password@db:5432/politifolio
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
       - XRPL_NODE_URL=wss://s.altnet.rippletest.net:51233
@@ -18,7 +18,7 @@ services:
     build: .
     command: celery -A tasks.celery_app worker --loglevel=info
     environment:
-      - DATABASE_URL=postgresql://postgres:password@db:5432/geopulse
+      - DATABASE_URL=postgresql://postgres:password@db:5432/politifolio
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
       - XRPL_NODE_URL=wss://s.altnet.rippletest.net:51233
@@ -31,7 +31,7 @@ services:
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=geopulse
+      - POSTGRES_DB=politifolio
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:

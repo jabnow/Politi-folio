@@ -82,9 +82,9 @@ export function RiskAnalyticsDashboard() {
   const riskChange = 12;
 
   return (
-    <div className="h-full flex flex-col gap-4 p-4 bg-zinc-950 overflow-y-auto">
+    <div className="min-h-full flex flex-col gap-4 p-4 bg-zinc-950 overflow-y-auto overflow-x-hidden">
       {/* Header KPIs */}
-      <div className="grid grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 shrink-0">
         <Card className="bg-zinc-900 border-zinc-800 p-4">
           <div className="flex items-start justify-between mb-2">
             <div>
@@ -155,9 +155,9 @@ export function RiskAnalyticsDashboard() {
       </div>
 
       {/* Main Charts Row */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
         {/* Risk Trend Chart */}
-        <Card className="bg-zinc-900 border-zinc-800 p-4 col-span-2">
+        <Card className="bg-zinc-900 border-zinc-800 p-4 xl:col-span-2">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="font-semibold text-white">Risk Score Trend</h3>
@@ -225,7 +225,7 @@ export function RiskAnalyticsDashboard() {
       </div>
 
       {/* Secondary Charts Row */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Country Exposure */}
         <Card className="bg-zinc-900 border-zinc-800 p-4">
           <h3 className="font-semibold text-white mb-4">Country Risk Exposure</h3>

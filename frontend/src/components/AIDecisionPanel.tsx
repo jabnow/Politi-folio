@@ -126,9 +126,9 @@ export function AIDecisionPanel() {
   };
 
   return (
-    <div className="h-full flex gap-4 p-4 bg-zinc-950">
+    <div className="min-h-full flex flex-col lg:flex-row gap-4 p-4 bg-zinc-950 overflow-auto">
       {/* Decision Queue */}
-      <div className="w-80 flex flex-col gap-4">
+      <div className="w-full lg:w-80 flex flex-col gap-4 shrink-0 lg:shrink">
         <Card className="bg-zinc-900 border-zinc-800 p-4">
           <div className="flex items-center gap-2 mb-4">
             <Brain className="w-5 h-5 text-purple-500" />
@@ -190,7 +190,7 @@ export function AIDecisionPanel() {
       </div>
 
       {/* Decision Details */}
-      <div className="flex-1 flex flex-col gap-4">
+      <div className="flex-1 flex flex-col gap-4 min-w-0">
         <Card className="bg-zinc-900 border-zinc-800 p-6">
           <div className="flex items-start justify-between mb-6">
             <div>
@@ -273,7 +273,7 @@ export function AIDecisionPanel() {
               <Shield className="w-4 h-4 text-blue-500" />
               Compliance Verification
             </h3>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="p-3 bg-zinc-800/50 rounded-lg">
                 <div className="text-xs text-zinc-400 mb-1">Sanctions List</div>
                 <div className={`text-lg font-semibold ${

@@ -153,9 +153,9 @@ export function ReconciliationDashboard() {
   const avgProcessingTime = 42; // seconds
 
   return (
-    <div className="h-full flex flex-col gap-4 p-4 bg-zinc-950">
+    <div className="min-h-full flex flex-col gap-4 p-4 bg-zinc-950 overflow-auto">
       {/* Header Stats */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 shrink-0">
         <Card className="bg-zinc-900 border-zinc-800 p-4">
           <div className="flex items-start justify-between">
             <div>
@@ -214,8 +214,8 @@ export function ReconciliationDashboard() {
       </div>
 
       {/* Controls */}
-      <Card className="bg-zinc-900 border-zinc-800 p-4">
-        <div className="flex items-center justify-between">
+      <Card className="bg-zinc-900 border-zinc-800 p-4 shrink-0">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <Filter className="w-4 h-4 text-zinc-400" />
             <span className="text-sm text-zinc-300">Filter:</span>
@@ -255,7 +255,7 @@ export function ReconciliationDashboard() {
             <Card className="bg-zinc-900 border-zinc-800 p-5 hover:border-zinc-700 transition-colors">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
                     <h3 className="font-semibold text-white">{task.eventType}</h3>
                     <Badge variant="outline" className={getPriorityColor(task.priority)}>
                       {task.priority.toUpperCase()}
@@ -298,7 +298,7 @@ export function ReconciliationDashboard() {
               </div>
 
               {/* Stats Grid */}
-              <div className="grid grid-cols-4 gap-4 mb-4">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
                 <div className="bg-zinc-800/50 rounded-lg p-3">
                   <div className="text-xs text-zinc-400 mb-1">Scanned</div>
                   <div className="text-lg font-bold text-white">{task.transactionsScanned.toLocaleString()}</div>

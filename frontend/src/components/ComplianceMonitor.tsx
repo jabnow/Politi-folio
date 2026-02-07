@@ -165,9 +165,9 @@ export function ComplianceMonitor() {
   };
 
   return (
-    <div className="h-full flex gap-4 p-4 bg-zinc-950">
+    <div className="min-h-full flex flex-col lg:flex-row gap-4 p-4 bg-zinc-950 overflow-auto">
       {/* Left Panel - Document List */}
-      <div className="w-96 flex flex-col gap-4">
+      <div className="w-full lg:w-96 flex flex-col gap-4 shrink-0 lg:shrink">
         <Card className="bg-zinc-900 border-zinc-800 p-4">
           <div className="flex items-center gap-2 mb-4">
             <Shield className="w-5 h-5 text-purple-500" />
@@ -245,7 +245,7 @@ export function ComplianceMonitor() {
       </div>
 
       {/* Right Panel - Document Details */}
-      <div className="flex-1 flex flex-col gap-4 overflow-y-auto">
+      <div className="flex-1 flex flex-col gap-4 overflow-y-auto min-w-0">
         {selectedDoc && (
           <>
             <Card className="bg-zinc-900 border-zinc-800 p-6">
@@ -292,7 +292,7 @@ export function ComplianceMonitor() {
               )}
 
               {/* Key Information Grid */}
-              <div className="grid grid-cols-3 gap-4 mb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                 <div className="bg-zinc-800/50 rounded-lg p-4">
                   <div className="text-xs text-zinc-400 mb-1">Jurisdiction</div>
                   <div className="text-lg font-bold text-white">{selectedDoc.jurisdiction}</div>
@@ -371,7 +371,7 @@ export function ComplianceMonitor() {
             </Card>
 
             {/* Impact Analysis */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <Card className="bg-zinc-900 border-zinc-800 p-4">
                 <h3 className="text-sm font-semibold text-white mb-4">Regulatory Coverage by Jurisdiction</h3>
                 <ResponsiveContainer width="100%" height={200}>
