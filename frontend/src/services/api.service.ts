@@ -75,22 +75,27 @@ export interface ReconciliationTask {
 
 async function fetchWithFallback<T>(
   url: string,
-  fallback: T
+  fallback: T | (() => T)
 ): Promise<T> {
   try {
     const res = await fetch(`${API_BASE}${url}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return await res.json();
   } catch {
-    return fallback;
+    return typeof fallback === 'function' ? (fallback as () => T)() : fallback;
   }
 }
 
-// Mock data fallback when API is unavailable
-const MOCK_EVENTS: GeopoliticalEvent[] = [
+/** Format as YYYY-MM-DD HH:MM:SS */
+const ts = (d: Date) => d.toISOString().replace('T', ' ').slice(0, 19);
+
+// Mock data fallback when API is unavailable – uses real timestamps
+const getMockEvents = (): GeopoliticalEvent[] => {
+  const now = new Date();
+  return [
   {
     id: 1,
-    timestamp: '2026-02-06 14:23:00',
+    timestamp: ts(now),
     type: 'sanctions',
     severity: 'CRITICAL',
     title: 'New EU Sanctions on Russian Energy Sector',
@@ -101,7 +106,7 @@ const MOCK_EVENTS: GeopoliticalEvent[] = [
   },
   {
     id: 2,
-    timestamp: '2026-02-06 14:18:00',
+    timestamp: ts(new Date(now.getTime() - 5 * 60000)),
     type: 'trade',
     severity: 'HIGH',
     title: 'Belarus Trade Restrictions Extended',
@@ -112,7 +117,7 @@ const MOCK_EVENTS: GeopoliticalEvent[] = [
   },
   {
     id: 3,
-    timestamp: '2026-02-06 14:12:00',
+    timestamp: ts(new Date(now.getTime() - 11 * 60000)),
     type: 'regulation',
     severity: 'MEDIUM',
     title: 'ECB Updates AML Requirements',
@@ -123,7 +128,7 @@ const MOCK_EVENTS: GeopoliticalEvent[] = [
   },
   {
     id: 4,
-    timestamp: '2026-02-06 14:05:00',
+    timestamp: ts(new Date(now.getTime() - 18 * 60000)),
     type: 'policy',
     severity: 'MEDIUM',
     title: 'Fed Maintains Interest Rates',
@@ -134,7 +139,7 @@ const MOCK_EVENTS: GeopoliticalEvent[] = [
   },
   {
     id: 5,
-    timestamp: '2026-02-06 13:58:00',
+    timestamp: ts(new Date(now.getTime() - 25 * 60000)),
     type: 'political',
     severity: 'HIGH',
     title: 'Political Instability in Brazil',
@@ -145,7 +150,7 @@ const MOCK_EVENTS: GeopoliticalEvent[] = [
   },
   {
     id: 6,
-    timestamp: '2026-02-06 13:45:00',
+    timestamp: ts(new Date(now.getTime() - 38 * 60000)),
     type: 'compliance',
     severity: 'LOW',
     title: 'Singapore Updates Crypto Regulations',
@@ -156,7 +161,7 @@ const MOCK_EVENTS: GeopoliticalEvent[] = [
   },
   {
     id: 7,
-    timestamp: '2026-02-06 13:32:00',
+    timestamp: ts(new Date(now.getTime() - 51 * 60000)),
     type: 'sanctions',
     severity: 'MEDIUM',
     title: 'UK Adds Entities to Sanctions List',
@@ -167,7 +172,7 @@ const MOCK_EVENTS: GeopoliticalEvent[] = [
   },
   {
     id: 8,
-    timestamp: '2026-02-06 13:22:00',
+    timestamp: ts(new Date(now.getTime() - 61 * 60000)),
     type: 'trade',
     severity: 'CRITICAL',
     title: 'US Threatens 100% Tariffs on Taiwan-Made Semiconductors',
@@ -178,7 +183,7 @@ const MOCK_EVENTS: GeopoliticalEvent[] = [
   },
   {
     id: 9,
-    timestamp: '2026-02-06 13:15:00',
+    timestamp: ts(new Date(now.getTime() - 68 * 60000)),
     type: 'regulation',
     severity: 'HIGH',
     title: 'China Launches Antitrust Probes on NVIDIA, Google',
@@ -189,7 +194,7 @@ const MOCK_EVENTS: GeopoliticalEvent[] = [
   },
   {
     id: 10,
-    timestamp: '2026-02-06 13:08:00',
+    timestamp: ts(new Date(now.getTime() - 75 * 60000)),
     type: 'policy',
     severity: 'HIGH',
     title: 'US CHIPS Act Review Delays Intel, TSMC, Samsung Subsidies',
@@ -200,7 +205,7 @@ const MOCK_EVENTS: GeopoliticalEvent[] = [
   },
   {
     id: 11,
-    timestamp: '2026-02-06 13:02:00',
+    timestamp: ts(new Date(now.getTime() - 81 * 60000)),
     type: 'trade',
     severity: 'MEDIUM',
     title: 'TSMC Signals 15% Semiconductor Price Increase to Pass Tariff Costs',
@@ -211,7 +216,7 @@ const MOCK_EVENTS: GeopoliticalEvent[] = [
   },
   {
     id: 12,
-    timestamp: '2026-02-06 12:55:00',
+    timestamp: ts(new Date(now.getTime() - 88 * 60000)),
     type: 'political',
     severity: 'MEDIUM',
     title: 'Taiwan Legacy Chip Sector Faces China Competition',
@@ -221,8 +226,11 @@ const MOCK_EVENTS: GeopoliticalEvent[] = [
     source: 'Reuters',
   },
 ];
+};
 
-const MOCK_DECISIONS: AIDecision[] = [
+const getMockDecisions = (): AIDecision[] => {
+  const now = new Date();
+  return [
   {
     id: 'DEC001',
     transactionId: 'TX001',
@@ -234,7 +242,7 @@ const MOCK_DECISIONS: AIDecision[] = [
     reasoning: [
       'Counterparty appears on OFAC sanctions list',
       'Russia classified as high-risk jurisdiction (Score: 95)',
-      'Recent EU sanctions announced 2026-02-05',
+      `Recent EU sanctions announced ${ts(new Date(now.getTime() - 86400000)).slice(0, 10)}`,
       'Transaction amount exceeds threshold for sanctioned entities',
     ],
     complianceChecks: {
@@ -244,7 +252,7 @@ const MOCK_DECISIONS: AIDecision[] = [
       regulatoryStatus: 'REVIEW_REQUIRED',
     },
     confidence: 98,
-    timestamp: '2026-02-06 14:23:15',
+    timestamp: ts(now),
   },
   {
     id: 'DEC002',
@@ -267,7 +275,7 @@ const MOCK_DECISIONS: AIDecision[] = [
       regulatoryStatus: 'REVIEW_REQUIRED',
     },
     confidence: 92,
-    timestamp: '2026-02-06 14:21:33',
+    timestamp: ts(new Date(now.getTime() - 2 * 60000)),
   },
   {
     id: 'DEC003',
@@ -290,7 +298,7 @@ const MOCK_DECISIONS: AIDecision[] = [
       regulatoryStatus: 'COMPLIANT',
     },
     confidence: 96,
-    timestamp: '2026-02-06 14:22:48',
+    timestamp: ts(new Date(now.getTime() - 1 * 60000)),
   },
   {
     id: 'DEC004',
@@ -312,7 +320,7 @@ const MOCK_DECISIONS: AIDecision[] = [
       regulatoryStatus: 'REVIEW_REQUIRED',
     },
     confidence: 85,
-    timestamp: '2026-02-06 14:20:12',
+    timestamp: ts(new Date(now.getTime() - 3 * 60000)),
   },
   {
     id: 'DEC005',
@@ -334,9 +342,10 @@ const MOCK_DECISIONS: AIDecision[] = [
       regulatoryStatus: 'COMPLIANT',
     },
     confidence: 94,
-    timestamp: '2026-02-06 14:19:44',
+    timestamp: ts(new Date(now.getTime() - 4 * 60000)),
   },
 ];
+};
 
 const MOCK_TRANSACTIONS: Transaction[] = [
   {
@@ -371,7 +380,9 @@ const MOCK_TRANSACTIONS: Transaction[] = [
   },
 ];
 
-const MOCK_RECONCILIATION_TASKS: ReconciliationTask[] = [
+const getMockReconciliationTasks = (): ReconciliationTask[] => {
+  const now = new Date();
+  return [
   {
     id: 'REC-001',
     eventType: 'EU Sanctions Update',
@@ -380,8 +391,8 @@ const MOCK_RECONCILIATION_TASKS: ReconciliationTask[] = [
     transactionsScanned: 1247,
     transactionsFlagged: 125,
     transactionsReconciled: 125,
-    startTime: '2026-02-06 14:23:00',
-    completionTime: '2026-02-06 14:23:45',
+    startTime: ts(now),
+    completionTime: ts(new Date(now.getTime() + 45 * 1000)),
     estimatedSavings: 3200,
     assignedTo: 'AI Engine',
     priority: 'critical',
@@ -394,8 +405,8 @@ const MOCK_RECONCILIATION_TASKS: ReconciliationTask[] = [
     transactionsScanned: 892,
     transactionsFlagged: 45,
     transactionsReconciled: 45,
-    startTime: '2026-02-06 14:18:00',
-    completionTime: '2026-02-06 14:18:32',
+    startTime: ts(new Date(now.getTime() - 5 * 60000)),
+    completionTime: ts(new Date(now.getTime() - 5 * 60000 + 32 * 1000)),
     estimatedSavings: 1800,
     assignedTo: 'AI Engine',
     priority: 'high',
@@ -408,7 +419,7 @@ const MOCK_RECONCILIATION_TASKS: ReconciliationTask[] = [
     transactionsScanned: 3421,
     transactionsFlagged: 234,
     transactionsReconciled: 156,
-    startTime: '2026-02-06 14:12:00',
+    startTime: ts(new Date(now.getTime() - 11 * 60000)),
     estimatedSavings: 2400,
     priority: 'medium',
   },
@@ -420,7 +431,7 @@ const MOCK_RECONCILIATION_TASKS: ReconciliationTask[] = [
     transactionsScanned: 567,
     transactionsFlagged: 156,
     transactionsReconciled: 142,
-    startTime: '2026-02-06 13:58:00',
+    startTime: ts(new Date(now.getTime() - 25 * 60000)),
     estimatedSavings: 1200,
     assignedTo: 'Compliance Team',
     priority: 'high',
@@ -433,16 +444,17 @@ const MOCK_RECONCILIATION_TASKS: ReconciliationTask[] = [
     transactionsScanned: 8945,
     transactionsFlagged: 23,
     transactionsReconciled: 23,
-    startTime: '2026-02-06 09:00:00',
-    completionTime: '2026-02-06 09:02:15',
+    startTime: ts(new Date(now.getTime() - 5 * 3600000)),
+    completionTime: ts(new Date(now.getTime() - 5 * 3600000 + 135 * 1000)),
     estimatedSavings: 4500,
     assignedTo: 'AI Engine',
     priority: 'low',
   },
 ];
+};
 
 export async function fetchEvents(): Promise<GeopoliticalEvent[]> {
-  return fetchWithFallback('/events', MOCK_EVENTS);
+  return fetchWithFallback('/events', getMockEvents);
 }
 
 export async function fetchTransactions(): Promise<Transaction[]> {
@@ -450,11 +462,11 @@ export async function fetchTransactions(): Promise<Transaction[]> {
 }
 
 export async function fetchDecisions(): Promise<AIDecision[]> {
-  return fetchWithFallback('/decisions', MOCK_DECISIONS);
+  return fetchWithFallback('/decisions', getMockDecisions);
 }
 
 export async function fetchReconciliationTasks(): Promise<ReconciliationTask[]> {
-  return fetchWithFallback('/reconciliation-tasks', MOCK_RECONCILIATION_TASKS);
+  return fetchWithFallback('/reconciliation-tasks', getMockReconciliationTasks);
 }
 
 /** Run workflow with real news (NVDA, TSMC, etc.) and rebalance. Triggers refresh. */

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { TrendingUp, TrendingDown, Activity, DollarSign, AlertCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -26,7 +26,10 @@ const generateOscillatingPriceData = (phase: number) => {
   return data;
 };
 
-const MOCK_TRANSACTIONS = [
+const getMockTransactions = () => {
+  const now = new Date();
+  const ts = (d: Date) => d.toISOString().replace('T', ' ').slice(0, 19);
+  return [
   { 
     id: 'TX001', 
     from: 'rN7n...8K4c', 
@@ -35,7 +38,7 @@ const MOCK_TRANSACTIONS = [
     currency: 'USDC', 
     status: 'flagged', 
     reason: 'Sanctioned counterparty',
-    timestamp: '2026-02-06 14:23:15',
+    timestamp: ts(now),
     riskScore: 95
   },
   { 
@@ -46,7 +49,7 @@ const MOCK_TRANSACTIONS = [
     currency: 'XRP', 
     status: 'approved', 
     reason: 'Compliance verified',
-    timestamp: '2026-02-06 14:22:48',
+    timestamp: ts(new Date(now.getTime() - 27000)),
     riskScore: 12
   },
   { 
@@ -57,7 +60,7 @@ const MOCK_TRANSACTIONS = [
     currency: 'USDT', 
     status: 'reviewing', 
     reason: 'High-risk jurisdiction',
-    timestamp: '2026-02-06 14:21:33',
+    timestamp: ts(new Date(now.getTime() - 60000)),
     riskScore: 68
   },
   { 
@@ -68,7 +71,7 @@ const MOCK_TRANSACTIONS = [
     currency: 'USDC', 
     status: 'flagged', 
     reason: 'Belarus sanctions',
-    timestamp: '2026-02-06 14:20:12',
+    timestamp: ts(new Date(now.getTime() - 183000)),
     riskScore: 89
   },
   { 
@@ -79,10 +82,11 @@ const MOCK_TRANSACTIONS = [
     currency: 'XRP', 
     status: 'approved', 
     reason: 'Standard processing',
-    timestamp: '2026-02-06 14:19:44',
+    timestamp: ts(new Date(now.getTime() - 211000)),
     riskScore: 8
   },
 ];
+};
 
 export function XRPDashboard() {
   const [priceData, setPriceData] = useState(() => generateOscillatingPriceData(0));
@@ -212,7 +216,7 @@ export function XRPDashboard() {
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold text-white">Real-Time XRP Ledger Transactions</h3>
           <Badge variant="outline" className="bg-red-500/10 text-red-500 border-red-500/20">
-            {MOCK_TRANSACTIONS.filter(t => t.status === 'flagged').length} Flagged
+            {getMockTransactions().filter(t => t.status === 'flagged').length} Flagged
           </Badge>
         </div>
         
@@ -230,7 +234,7 @@ export function XRPDashboard() {
               </tr>
             </thead>
             <tbody>
-              {MOCK_TRANSACTIONS.map((tx) => (
+              {getMockTransactions().map((tx) => (
                 <tr key={tx.id} className="border-b border-zinc-800/50 hover:bg-zinc-800/30">
                   <td className="py-3 text-sm text-zinc-300 font-mono">{tx.id}</td>
                   <td className="py-3 text-sm text-zinc-400 font-mono">{tx.from}</td>
