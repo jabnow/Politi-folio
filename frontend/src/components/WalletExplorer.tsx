@@ -3,7 +3,7 @@
  * Shows the issuer and destination wallets with their balances and recent transactions
  */
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -20,7 +20,6 @@ interface WalletInfo {
 
 export function WalletExplorer() {
   const [copied, setCopied] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
 
   const wallets: WalletInfo[] = [
     {

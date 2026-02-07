@@ -28,7 +28,6 @@ interface IntelligenceReportsPanelProps {
 }
 
 export function IntelligenceReportsPanel({
-  selectedCountries = [],
   onReportSelect,
 }: IntelligenceReportsPanelProps) {
   const [reports, setReports] = useState<IntelligenceReport[]>([]);

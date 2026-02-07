@@ -20,10 +20,6 @@ interface TransactionQRCodeProps {
 
 export function TransactionQRCode({
   txHash,
-  amount = '0',
-  currency = 'POL',
-  from = 'Issuer',
-  to = 'Destination',
   status = 'success',
 }: TransactionQRCodeProps) {
   const [copied, setCopied] = useState(false);
