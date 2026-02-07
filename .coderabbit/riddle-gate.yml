@@ -1,0 +1,60 @@
+name: Riddle Gate
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize]
+
+jobs:
+  riddle:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Riddle Gate Check
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 - << 'EOF'
+          import json, os, re, random, subprocess, sys
+
+          # Load riddles (your schema)
+          with open(".coderabbit/riddles.json") as f:
+              riddles = json.load(f)
+
+          with open(".coderabbit/sarcasm.json") as f:
+              sarcasm = json.load(f)
+
+          riddle = random.choice(riddles)
+
+          body = os.getenv("PR_BODY") or ""
+          match = re.search(r"ANSWER:\s*(.+)", body, re.IGNORECASE)
+
+          def comment(msg):
+              subprocess.run([
+                  "gh", "pr", "comment",
+                  os.getenv("PR_NUMBER"),
+                  "--repo", os.getenv("REPO"),
+                  "--body", msg
+              ], check=False)
+
+          if not match:
+              comment(
+                  f"🧩 **Riddle Gate** (ID {riddle['id']})\n\n"
+                  f"**Riddle:** {riddle['riddle']}\n\n"
+                  "Edit the PR description and add:\n"
+                  "`ANSWER: <your guess>`"
+              )
+              sys.exit(1)
+
+          answer = match.group(1).strip().lower()
+
+          if answer != riddle["answer"].lower():
+              comment("❌ " + random.choice(sarcasm))
+              sys.exit(1)
+
+          comment(f"✅ **Correct.** Riddle #{riddle['id']} defeated.")
+          EOF

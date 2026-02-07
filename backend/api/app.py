@@ -1,10 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from api.routes import transactions, compliance, users
-from database.database import engine, Base
+from database.database import init_db
 
 # Create tables
-Base.metadata.create_all(bind=engine)
+init_db()
 
 app = FastAPI(title="Politifolio Backend", version="1.0.0")
 
