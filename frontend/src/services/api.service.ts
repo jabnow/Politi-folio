@@ -476,11 +476,13 @@ export async function runWorkflow(params?: { q?: string; portfolio?: string[] })
     if (params?.q) url.searchParams.set('q', params.q);
     if (params?.portfolio?.length) url.searchParams.set('portfolio', params.portfolio.join(','));
     const res = await fetch(url.toString(), { method: 'POST', headers: { 'Content-Type': 'application/json' } });
-    const data = await res.json();
+    const text = await res.text();
+    const data = text ? (JSON.parse(text) as { error?: string; key_event_id?: string }) : {};
     if (!res.ok) return { error: data.error ?? `HTTP ${res.status}` };
     window.dispatchEvent(new CustomEvent('politifolio-refresh'));
     return { key_event_id: data.key_event_id };
   } catch (e) {
-    return { error: e instanceof Error ? e.message : 'Request failed' };
+    const msg = e instanceof Error ? e.message : 'Request failed';
+    return { error: msg.includes('JSON') || msg.includes('fetch') ? 'Backend not running. Start it with: cd backend && npm run dev' : msg };
   }
 }
