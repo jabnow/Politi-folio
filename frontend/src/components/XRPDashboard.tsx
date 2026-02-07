@@ -170,6 +170,8 @@ export function XRPDashboard() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
+          whileHover={{ scale: 1.02, boxShadow: '0 0 24px rgba(245, 158, 11, 0.2)' }}
+          transition={{ type: 'spring', stiffness: 300, damping: 25 }}
           className="relative overflow-hidden rounded-xl border border-amber-500/20 bg-gradient-to-br from-amber-950/50 to-zinc-900 p-4"
         >
           <div className="text-xs text-amber-400/90 mb-1 font-medium">POL Risk Score</div>
@@ -183,6 +185,7 @@ export function XRPDashboard() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
+          whileHover={{ scale: 1.02, boxShadow: '0 0 24px rgba(6, 182, 212, 0.2)' }}
           className="relative overflow-hidden rounded-xl border border-cyan-500/20 bg-gradient-to-br from-cyan-950/50 to-zinc-900 p-4"
         >
           <div className="text-xs text-cyan-400/90 mb-1 font-medium">Social Sentiment</div>
@@ -198,7 +201,8 @@ export function XRPDashboard() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="relative overflow-hidden rounded-xl border border-zinc-600/30 bg-zinc-900/80 p-4"
+          whileHover={{ scale: 1.02, boxShadow: '0 0 24px rgba(99, 102, 241, 0.25)' }}
+          className="relative overflow-hidden rounded-xl p-4 politifolio-card"
         >
           <div className="text-xs text-zinc-400 mb-1 font-medium">POL Transactions</div>
           <div className="font-display text-2xl font-bold text-white font-mono">
@@ -211,6 +215,7 @@ export function XRPDashboard() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
+          whileHover={{ scale: 1.02, boxShadow: '0 0 24px rgba(239, 68, 68, 0.2)' }}
           className="relative overflow-hidden rounded-xl border border-red-500/20 bg-gradient-to-br from-red-950/30 to-zinc-900 p-4"
         >
           <div className="text-xs text-red-400/90 mb-1 font-medium">Flagged</div>
@@ -228,7 +233,7 @@ export function XRPDashboard() {
         transition={{ delay: 0.2 }}
         className="shrink-0"
       >
-        <Card className="bg-zinc-900/80 border-zinc-800 p-4">
+        <Card className="p-4">
           <h3 className="font-display font-semibold text-white mb-2">News Affecting POL Sentiment</h3>
           <p className="text-xs text-zinc-400 mb-4">
             Geopolitical and crypto news driving risk and sentiment.
@@ -241,7 +246,7 @@ export function XRPDashboard() {
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: i * 0.05 }}
-                  className="py-2 px-3 rounded bg-zinc-800/50 text-sm border-l-2 border-amber-500/30"
+                  className="py-2 px-3 rounded politifolio-panel text-sm border-l-2 border-amber-500/30"
                 >
                   <div className="text-zinc-200">{h.title}</div>
                   {h.summary && (
@@ -273,7 +278,7 @@ export function XRPDashboard() {
         transition={{ delay: 0.25 }}
         className="shrink-0"
       >
-        <Card className="bg-zinc-900/80 border-zinc-800 p-4">
+        <Card className="p-4">
           <button
             type="button"
             onClick={() => setExpandedLookup(!expandedLookup)}
@@ -298,7 +303,7 @@ export function XRPDashboard() {
                       value={address}
                       onChange={(e) => setAddress(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleLookup()}
-                      className="font-mono flex-1 min-w-[200px] px-4 py-2 rounded bg-zinc-800 border border-zinc-700 text-white text-sm"
+                      className="font-mono flex-1 min-w-[200px] px-4 py-2 rounded politifolio-input text-white text-sm"
                     />
                     <Button
                       onClick={() => handleLookup()}
@@ -319,15 +324,15 @@ export function XRPDashboard() {
 
                   {resolvedAddress && (xrpBalance !== null || polBalance !== null) && (
                     <div className="grid grid-cols-3 gap-2">
-                      <div className="p-2 rounded bg-zinc-800/50 text-center">
+                      <div className="p-2 rounded politifolio-panel text-center">
                         <div className="text-xs text-zinc-500">XRP</div>
                         <div className="font-mono text-white">{xrpBalance ?? '—'}</div>
                       </div>
-                      <div className="p-2 rounded bg-zinc-800/50 text-center">
+                      <div className="p-2 rounded politifolio-panel text-center">
                         <div className="text-xs text-zinc-500">POL</div>
                         <div className="font-mono text-amber-400">{polBalance ?? '—'}</div>
                       </div>
-                      <div className="p-2 rounded bg-zinc-800/50 text-center">
+                      <div className="p-2 rounded politifolio-panel text-center">
                         <div className="text-xs text-zinc-500">RLUSD</div>
                         <div className="font-mono text-emerald-400">{rlusdBalance ?? '—'}</div>
                       </div>
@@ -342,19 +347,19 @@ export function XRPDashboard() {
                         placeholder="Recipient"
                         value={escrowForm.recipient}
                         onChange={(e) => setEscrowForm((f) => ({ ...f, recipient: e.target.value }))}
-                        className="font-mono w-40 px-3 py-2 rounded bg-zinc-800 border border-zinc-700 text-white text-sm"
+                        className="font-mono w-40 px-3 py-2 rounded politifolio-input text-white text-sm"
                       />
                       <input
                         type="text"
                         placeholder="Amount"
                         value={escrowForm.amount}
                         onChange={(e) => setEscrowForm((f) => ({ ...f, amount: e.target.value }))}
-                        className="font-mono w-20 px-3 py-2 rounded bg-zinc-800 border border-zinc-700 text-white text-sm"
+                        className="font-mono w-20 px-3 py-2 rounded politifolio-input text-white text-sm"
                       />
                       <select
                         value={escrowForm.currency}
                         onChange={(e) => setEscrowForm((f) => ({ ...f, currency: e.target.value }))}
-                        className="font-mono px-3 py-2 rounded bg-zinc-800 border border-zinc-700 text-white text-sm"
+                        className="font-mono px-3 py-2 rounded politifolio-input text-white text-sm"
                       >
                         <option value="XRP">XRP</option>
                         <option value="POL">POL</option>
@@ -373,7 +378,7 @@ export function XRPDashboard() {
                         {escrows.map((e, i) => (
                           <div
                             key={i}
-                            className="text-xs font-mono py-1 px-2 rounded bg-zinc-800/50"
+                            className="text-xs font-mono py-1 px-2 rounded politifolio-panel"
                           >
                             Seq {e.sequence} → {typeof e.amount === 'object' ? e.amount?.value : e.amount}{' '}
                             {typeof e.amount === 'object' ? e.amount?.currency : ''}
@@ -396,7 +401,7 @@ export function XRPDashboard() {
           animate={{ opacity: 1 }}
           className="flex-1 min-h-0 flex flex-col"
         >
-          <Card className="bg-zinc-900/80 border-zinc-800 p-4 flex-1 min-h-[200px]">
+          <Card className="p-4 flex-1 min-h-[200px]">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-display font-semibold text-white">Transaction Monitor</h3>
               <Badge variant="outline" className="bg-red-500/10 text-red-500 border-red-500/20">
@@ -406,7 +411,7 @@ export function XRPDashboard() {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-zinc-800">
+                  <tr className="border-b border-white/10">
                     <th className="text-left text-xs text-zinc-400 pb-2">Hash</th>
                     <th className="text-left text-xs text-zinc-400 pb-2">From</th>
                     <th className="text-left text-xs text-zinc-400 pb-2">To</th>
@@ -417,7 +422,7 @@ export function XRPDashboard() {
                 </thead>
                 <tbody>
                   {transactions.slice(0, 10).map((tx, i) => (
-                    <tr key={i} className="border-b border-zinc-800/50 hover:bg-zinc-800/30">
+                    <tr key={i} className="border-b border-white/5 hover:bg-white/5">
                       <td className="py-2 text-sm font-mono text-zinc-300">{tx.hash?.slice(0, 12)}...</td>
                       <td className="py-2 text-sm font-mono text-zinc-400">{tx.from?.slice(0, 12)}...</td>
                       <td className="py-2 text-sm font-mono text-zinc-400">{tx.to?.slice(0, 12)}...</td>

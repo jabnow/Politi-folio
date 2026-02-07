@@ -80,7 +80,7 @@ export function ReconciliationDashboard() {
       case 'failed':
         return 'bg-red-500/10 text-red-500 border-red-500/20';
       default:
-        return 'bg-zinc-500/10 text-zinc-500 border-zinc-500/20';
+        return 'politifolio-badge-neutral';
     }
   };
 
@@ -104,17 +104,17 @@ export function ReconciliationDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-full flex items-center justify-center bg-zinc-950 p-4">
+      <div className="min-h-full flex items-center justify-center bg-transparent p-4">
         <div className="text-zinc-400">Loading reconciliation tasks...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-full flex flex-col gap-4 p-4 bg-zinc-950 overflow-auto">
+    <div className="min-h-full flex flex-col gap-4 p-4 bg-transparent overflow-auto">
       {/* Header Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 shrink-0">
-        <Card className="bg-zinc-900 border-zinc-800 p-4">
+        <Card className="p-4">
           <div className="flex items-start justify-between">
             <div>
               <div className="text-xs text-zinc-400 mb-1">Cost Savings Today</div>
@@ -127,7 +127,7 @@ export function ReconciliationDashboard() {
           </div>
         </Card>
 
-        <Card className="bg-zinc-900 border-zinc-800 p-4">
+        <Card className="p-4">
           <div className="flex items-start justify-between">
             <div>
               <div className="text-xs text-zinc-400 mb-1">Transactions Reconciled</div>
@@ -140,7 +140,7 @@ export function ReconciliationDashboard() {
           </div>
         </Card>
 
-        <Card className="bg-zinc-900 border-zinc-800 p-4">
+        <Card className="p-4">
           <div className="flex items-start justify-between">
             <div>
               <div className="text-xs text-zinc-400 mb-1">Avg Processing Time</div>
@@ -153,7 +153,7 @@ export function ReconciliationDashboard() {
           </div>
         </Card>
 
-        <Card className="bg-zinc-900 border-zinc-800 p-4">
+        <Card className="p-4">
           <div className="flex items-start justify-between">
             <div>
               <div className="text-xs text-zinc-400 mb-1">Active Tasks</div>
@@ -172,7 +172,7 @@ export function ReconciliationDashboard() {
       </div>
 
       {/* Controls */}
-      <Card className="bg-zinc-900 border-zinc-800 p-4 shrink-0">
+      <Card className="p-4 shrink-0">
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <Filter className="w-4 h-4 text-zinc-400" />
@@ -185,7 +185,7 @@ export function ReconciliationDashboard() {
                   className={`px-3 py-1 rounded text-xs transition-colors ${
                     filter === f
                       ? 'bg-purple-500 text-white'
-                      : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+                      : 'politifolio-panel text-zinc-400 hover:bg-violet-600/20'
                   }`}
                 >
                   {f.replace('_', ' ').toUpperCase()}
@@ -210,7 +210,7 @@ export function ReconciliationDashboard() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: idx * 0.05 }}
           >
-            <Card className="bg-zinc-900 border-zinc-800 p-5 hover:border-zinc-700 transition-colors">
+            <Card className="p-5 hover:border-violet-500/40 transition-colors transition-shadow hover:shadow-[0_0_24px_rgba(99,102,241,0.2)]">
               <div ref={(el) => { if (el) taskRefs.current[task.id] = el; }}>
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
@@ -252,19 +252,19 @@ export function ReconciliationDashboard() {
                   />
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
-                  <div className="bg-zinc-800/50 rounded-lg p-3">
+                  <div className="politifolio-panel rounded-lg p-3">
                     <div className="text-xs text-zinc-400 mb-1">Scanned</div>
                     <div className="text-lg font-bold text-white">{task.transactionsScanned.toLocaleString()}</div>
                   </div>
-                  <div className="bg-zinc-800/50 rounded-lg p-3">
+                  <div className="politifolio-panel rounded-lg p-3">
                     <div className="text-xs text-zinc-400 mb-1">Flagged</div>
                     <div className="text-lg font-bold text-orange-500">{task.transactionsFlagged}</div>
                   </div>
-                  <div className="bg-zinc-800/50 rounded-lg p-3">
+                  <div className="politifolio-panel rounded-lg p-3">
                     <div className="text-xs text-zinc-400 mb-1">Reconciled</div>
                     <div className="text-lg font-bold text-green-500">{task.transactionsReconciled}</div>
                   </div>
-                  <div className="bg-zinc-800/50 rounded-lg p-3">
+                  <div className="politifolio-panel rounded-lg p-3">
                     <div className="text-xs text-zinc-400 mb-1">Assigned To</div>
                     <div className="text-sm font-semibold text-purple-400">{task.assignedTo || 'Unassigned'}</div>
                   </div>
@@ -295,7 +295,7 @@ export function ReconciliationDashboard() {
               {task.assignedTo === 'AI Engine' && task.status === 'completed' && (
                 <div className="mt-3 p-2 bg-green-500/5 border border-green-500/20 rounded flex items-center gap-2 text-xs text-green-400">
                   <CheckCircle2 className="w-3 h-3" />
-                  <span>Fully automated - No human intervention required</span>
+                  <span>Fully automated - No intervention required</span>
                 </div>
               )}
             </Card>

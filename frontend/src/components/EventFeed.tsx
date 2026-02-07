@@ -1,16 +1,9 @@
-import { useState, useEffect, type HTMLAttributes } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fetchEvents, type GeopoliticalEvent } from '@/services/api.service';
-// import { AlertCircle, Globe, TrendingUp, FileText, Zap, Shield, Radio } from 'lucide-react';
-const AlertCircle = ({ className, ...props }: HTMLAttributes<HTMLSpanElement>) => <span className={className} {...props}>⚠️</span>;
-const Globe = ({ className, ...props }: HTMLAttributes<HTMLSpanElement>) => <span className={className} {...props}>🌐</span>;
-const TrendingUp = ({ className, ...props }: HTMLAttributes<HTMLSpanElement>) => <span className={className} {...props}>📈</span>;
-const FileText = ({ className, ...props }: HTMLAttributes<HTMLSpanElement>) => <span className={className} {...props}>📄</span>;
-const Zap = ({ className, ...props }: HTMLAttributes<HTMLSpanElement>) => <span className={className} {...props}>⚡</span>;
-const Shield = ({ className, ...props }: HTMLAttributes<HTMLSpanElement>) => <span className={className} {...props}>🛡️</span>;
-const Radio = ({ className, ...props }: HTMLAttributes<HTMLSpanElement>) => <span className={className} {...props}>📻</span>;
+import { AlertCircle, Globe, TrendingUp, FileText, Zap, Shield, Radio } from 'lucide-react';
 
 export function EventFeed() {
   const [events, setEvents] = useState<GeopoliticalEvent[]>([]);
@@ -49,7 +42,7 @@ export function EventFeed() {
       case 'HIGH': return 'bg-orange-500/10 text-orange-500 border-orange-500/20';
       case 'MEDIUM': return 'bg-blue-500/10 text-blue-500 border-blue-500/20';
       case 'LOW': return 'bg-green-500/10 text-green-500 border-green-500/20';
-      default: return 'bg-zinc-500/10 text-zinc-500 border-zinc-500/20';
+      default: return 'politifolio-badge-neutral';
     }
   };
 
@@ -59,18 +52,18 @@ export function EventFeed() {
 
   if (loading) {
     return (
-      <div className="min-h-full flex items-center justify-center bg-zinc-950 p-4">
+      <div className="min-h-full flex items-center justify-center p-4">
         <div className="text-zinc-400">Loading events...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-full flex flex-col bg-zinc-950 p-4 overflow-auto">
-      <Card className="bg-zinc-900 border-zinc-800 p-4 mb-4 shrink-0">
+    <div className="min-h-full flex flex-col p-4 overflow-auto">
+      <Card className="p-4 mb-4 shrink-0">
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="bg-purple-500/10 p-2 rounded-lg">
+            <div className="p-2 rounded-lg" style={{ background: 'rgba(139, 92, 246, 0.15)' }}>
               <Radio className="w-5 h-5 text-purple-500 animate-pulse" />
             </div>
             <div>
@@ -80,36 +73,20 @@ export function EventFeed() {
           </div>
           
           <div className="flex gap-2">
-            <button
-              onClick={() => setFilter('all')}
-              className={`px-3 py-1 rounded text-xs transition-colors ${
-                filter === 'all' 
-                  ? 'bg-purple-500 text-white' 
-                  : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
-              }`}
-            >
-              All
-            </button>
-            <button
-              onClick={() => setFilter('CRITICAL')}
-              className={`px-3 py-1 rounded text-xs transition-colors ${
-                filter === 'CRITICAL' 
-                  ? 'bg-red-500 text-white' 
-                  : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
-              }`}
-            >
-              Critical
-            </button>
-            <button
-              onClick={() => setFilter('HIGH')}
-              className={`px-3 py-1 rounded text-xs transition-colors ${
-                filter === 'HIGH' 
-                  ? 'bg-orange-500 text-white' 
-                  : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
-              }`}
-            >
-              High
-            </button>
+            {(['all', 'CRITICAL', 'HIGH'] as const).map((f) => {
+              const activeClass = f === 'all' ? 'bg-purple-500 text-white shadow-[0_0_12px_rgba(139,92,246,0.5)]' : f === 'CRITICAL' ? 'bg-red-500 text-white shadow-[0_0_12px_rgba(239,68,68,0.5)]' : 'bg-orange-500 text-white shadow-[0_0_12px_rgba(249,115,22,0.5)]';
+              return (
+                <motion.button
+                  key={f}
+                  onClick={() => setFilter(f)}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={`px-3 py-1 rounded text-xs transition-colors ${filter === f ? activeClass : 'politifolio-panel text-zinc-400 hover:bg-violet-600/20'}`}
+                >
+                  {f === 'all' ? 'All' : f === 'CRITICAL' ? 'Critical' : 'High'}
+                </motion.button>
+              );
+            })}
           </div>
         </div>
       </Card>
@@ -124,7 +101,7 @@ export function EventFeed() {
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ delay: idx * 0.05 }}
             >
-              <Card className="bg-zinc-900 border-zinc-800 p-4 hover:border-zinc-700 transition-colors cursor-pointer">
+              <Card className="p-4 hover:border-violet-500/40 transition-colors cursor-pointer">
                 <div className="flex items-start gap-3">
                   <div className={`p-2 rounded-lg ${getSeverityColor(event.severity)}`}>
                     {getTypeIcon(event.type)}
@@ -161,7 +138,7 @@ export function EventFeed() {
                       </div>
                     </div>
                     
-                    <div className="mt-2 pt-2 border-t border-zinc-800">
+                    <div className="mt-2 pt-2 border-t border-white/10">
                       <span className="text-xs text-zinc-500">Source: </span>
                       <span className="text-xs text-zinc-400 font-medium">{event.source}</span>
                     </div>
@@ -186,7 +163,7 @@ export function EventFeed() {
       </div>
 
       {/* Summary Stats */}
-      <Card className="bg-zinc-900 border-zinc-800 p-4 mt-4 shrink-0">
+      <Card className="p-4 mt-4 shrink-0">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <div className="text-center">
             <div className="text-xl font-bold text-white">{events.length}</div>
