@@ -34,9 +34,13 @@ def deploy_token():
     # Enable RequireAuth (0x00040000) - Only authorized trustlines can hold token
     # Disable DefaultRipple (0x00800000) - Prevent unauthorized rippling
     
+    # Constants for AccountSet Flags (asf)
+    ASF_REQUIRE_AUTH = 2
+    ASF_DEFAULT_RIPPLE = 8
+
     settings_tx = AccountSet(
         account=wallet.classic_address,
-        set_flag=AccountSetFlag.asf_default_ripple
+        set_flag=ASF_DEFAULT_RIPPLE
     )
     
     try:
@@ -48,7 +52,7 @@ def deploy_token():
         else:
             tx = AccountSet(
                 account=wallet.classic_address,
-                set_flag=AccountSetFlag.asf_require_auth
+                set_flag=ASF_REQUIRE_AUTH
             )
             signed = autofill_and_sign(tx, client, wallet)
             res = submit_and_wait(signed, client)
