@@ -13,6 +13,18 @@ import { getReconciliationTasks } from './controllers/reconciliation-tasks.contr
 import { getDecisions } from './controllers/decisions.controller.js'
 import { runWorkflow } from './controllers/workflow.controller.js'
 import { listKeyEvents, getKeyEvent } from './controllers/key-events.controller.js'
+import {
+  getBalance,
+  getTransactions,
+  getPolBalance,
+  getRlusdBalance,
+  getPolIssuer,
+  getPolRiskSentimentHandler,
+  createEscrow,
+  finishEscrow,
+  cancelEscrow,
+  listEscrows,
+} from './controllers/xrpl.controller.js'
 import { initTables, seedFromMocks } from './services/sqlite.service.js'
 import { getEventsMock } from './mocks/events.mock.js'
 import { getReconciliationTasksMock } from './mocks/reconciliation-tasks.mock.js'
@@ -39,6 +51,18 @@ app.get('/api/workflow', runWorkflow)
 app.post('/api/workflow', runWorkflow)
 app.get('/api/key-events', listKeyEvents)
 app.get('/api/key-events/:id', getKeyEvent)
+
+// XRPL Ledger API
+app.get('/api/xrpl/balance', getBalance)
+app.get('/api/xrpl/transactions', getTransactions)
+app.get('/api/xrpl/pol/issuer', getPolIssuer)
+app.get('/api/xrpl/pol/balance', getPolBalance)
+app.get('/api/xrpl/pol/risk-sentiment', getPolRiskSentimentHandler)
+app.get('/api/xrpl/rlusd/balance', getRlusdBalance)
+app.post('/api/xrpl/escrow/create', createEscrow)
+app.post('/api/xrpl/escrow/finish', finishEscrow)
+app.post('/api/xrpl/escrow/cancel', cancelEscrow)
+app.get('/api/xrpl/escrow/list', listEscrows)
 
 /** Health check for connection testing */
 app.get('/api/health', (_req, res) => {

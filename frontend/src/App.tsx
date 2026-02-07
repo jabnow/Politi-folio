@@ -160,7 +160,7 @@ export default function App() {
                 className="rounded-none border-b-2 border-transparent data-[state=active]:border-purple-500 data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 sm:px-6 py-3 data-[state=active]:text-white shrink-0"
               >
                 <Activity className="w-4 h-4 mr-2" />
-                XRP Ledger Monitor
+                POL Risk & Sentiment
               </TabsTrigger>
               <TabsTrigger 
                 value="reconciliation" 
