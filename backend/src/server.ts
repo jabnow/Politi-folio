@@ -27,5 +27,5 @@ app.get('/api/key-events', listKeyEvents)
 app.get('/api/key-events/:id', getKeyEvent)
 
 app.listen(PORT, () => {
-  console.log(`Geopulse backend running at http://localhost:${PORT}`)
+  console.log(`Politifolio backend running at http://localhost:${PORT}`)
 })

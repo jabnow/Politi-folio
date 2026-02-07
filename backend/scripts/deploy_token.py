@@ -9,7 +9,7 @@ from xrpl.models.amounts import IssuedCurrencyAmount
 from config.config import settings
 
 def deploy_token():
-    print("--- GeoPulse Token Deployment ---")
+    print("--- Politifolio Token Deployment ---")
     
     # 1. Connect
     print("Connecting to XRPL...")

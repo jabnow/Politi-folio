@@ -1,0 +1,26 @@
+name: Post PR Riddle
+
+on:
+  pull_request:
+    types: [opened]
+
+jobs:
+  post-riddle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Post riddle comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const riddles = require('./.coderabbit/riddles.json');
+            const pr = context.payload.pull_request;
+            const riddle = riddles[pr.number % riddles.length];
+
+            github.rest.issues.createComment({
+              issue_number: pr.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `**Riddle of this PR**\n\n${riddle.riddle}\n\nReply in the PR description:\n\`\`\`\nANSWER: <your guess>\n\`\`\`\nOr surrender:\n\`\`\`\nLOSER_MODE: true\n\`\`\``
+            });

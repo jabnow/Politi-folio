@@ -1,0 +1,91 @@
+# (¬_¬)
+# ୧(๑•̀ᗝ•́)૭
+# ヽ(#`Д´)ﾉ
+# ◝(^⌣^)◜
+# ( ,,⩌'︿'⩌,,)
+
+name: Riddle Gate
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize]
+
+jobs:
+  riddle:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Write validator script
+        run: |
+          cat > validate_riddle.py << 'PYCODE'
+import json
+import hashlib
+import os
+import sys
+from pathlib import Path
+
+event_path = os.environ["GITHUB_EVENT_PATH"]
+event = json.load(open(event_path))
+
+body = (event["pull_request"]["body"] or "").lower()
+actor = event["sender"]["login"]
+pr_number = event["pull_request"]["number"]
+
+loser = "loser_mode: true" in body
+
+riddles = json.load(open(".coderabbit/riddles.json"))
+riddle = riddles[pr_number % len(riddles)]
+
+answers = {}
+for line in Path(".coderabbit/riddle.answer").read_text().splitlines():
+    key, val = line.split("=")
+    answers[key] = val.split(":")[1]
+
+lb_path = Path("scripts/leaderboard.json")
+leaderboard = json.loads(lb_path.read_text())
+
+if loser:
+    leaderboard["losers"][actor] = leaderboard["losers"].get(actor, 0) + 1
+    lb_path.write_text(json.dumps(leaderboard, indent=2))
+    print("(¬_¬) Loser mode accepted.")
+    sys.exit(0)
+
+answer = None
+for line in body.splitlines():
+    if line.startswith("answer:"):
+        answer = line.replace("answer:", "").strip()
+
+if not answer:
+    print("୧(๑•̀ᗝ•́)૭ No ANSWER provided.")
+    sys.exit(1)
+
+if answer not in answers:
+    print("ヽ(#`Д´)ﾉ Incorrect answer.")
+    sys.exit(1)
+
+hashed = hashlib.sha256(answer.encode()).hexdigest()
+if hashed != answers[answer]:
+    print("( ,,⩌'︿'⩌,,) Incorrect answer.")
+    sys.exit(1)
+
+leaderboard["solved"][actor] = leaderboard["solved"].get(actor, 0) + 1
+lb_path.write_text(json.dumps(leaderboard, indent=2))
+
+print("◝(^⌣^)◜ Riddle solved.")
+PYCODE
+
+      - name: Run riddle validator
+        run: |
+          python3 validate_riddle.py
+
+      - name: Commit leaderboard
+        if: always()
+        run: |
+          git config user.name "riddle-bot"
+          git config user.email "riddle-bot@users.noreply.github.com"
+          git add scripts/leaderboard.json
+          git commit -m "Update riddle leaderboard" || true
+          git push || true
+

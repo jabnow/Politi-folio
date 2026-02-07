@@ -1,0 +1,52 @@
+[
+  {
+    "id": 1,
+    "riddle": "I can travel the world without moving, and I’m often heard but never seen. What am I?",
+    "answer": "echo"
+  },
+  {
+    "id": 2,
+    "riddle": "The more you take from me, the bigger I become. What am I?",
+    "answer": "hole"
+  },
+  {
+    "id": 3,
+    "riddle": "I have keys but no locks, space but no room. What am I?",
+    "answer": "keyboard"
+  },
+  {
+    "id": 4,
+    "riddle": "I speak every language but have no mouth. What am I?",
+    "answer": "echo"
+  },
+  {
+    "id": 5,
+    "riddle": "I go up and down but never move. What am I?",
+    "answer": "stairs"
+  },
+  {
+    "id": 6,
+    "riddle": "I’m always running but never tired, and I have a mouth but no words. What am I?",
+    "answer": "river"
+  },
+  {
+    "id": 7,
+    "riddle": "I shave every day, yet my beard stays the same. Who am I?",
+    "answer": "barber"
+  },
+  {
+    "id": 8,
+    "riddle": "I can fill a room but take up no space. What am I?",
+    "answer": "light"
+  },
+  {
+    "id": 9,
+    "riddle": "You can catch me, but you can’t throw me. What am I?",
+    "answer": "cold"
+  },
+  {
+    "id": 10,
+    "riddle": "I’m tall when young and short when old. What am I?",
+    "answer": "candle"
+  }
+]

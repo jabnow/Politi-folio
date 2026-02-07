@@ -1,11 +1,11 @@
-# Geopulse
+# Politifolio
 
 Geopolitical intelligence platform for XRP Ledger reconciliation and risk monitoring.
 
 ## Project Structure
 
 ```
-geopulse/
+politifolio/
 ├── backend/                    # Node.js + Express
 │   ├── src/
 │   │   ├── services/           # Dedalus, XRPL, sanctions, Anthropic, risk-scoring

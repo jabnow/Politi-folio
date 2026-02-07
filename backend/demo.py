@@ -12,7 +12,7 @@ from xrp_integration.token_controller import TokenController
 import uuid
 
 def run_demo():
-    print("--- GeoPulse Backend Demo ---")
+    print("--- Politifolio Backend Demo ---")
     
     from config.config import settings
     if not settings.GEO_PULSE_ISSUER_SEED or settings.GEO_PULSE_ISSUER_SEED == "MOCK_SEED":
@@ -25,7 +25,7 @@ def run_demo():
     
     # 2. Create User
     print("\n2. Creating Demo User...")
-    user = User(username="demo_user", email="demo@geopulse.io", hashed_password="hashed_secret")
+    user = User(username="demo_user", email="demo@politifolio.io", hashed_password="hashed_secret")
     db.add(user)
     try:
         db.commit()

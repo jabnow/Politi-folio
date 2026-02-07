@@ -1,11 +1,11 @@
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "GeoPulse Backend"
+    PROJECT_NAME: str = "Politifolio Backend"
     API_V1_STR: str = "/api/v1"
     
     # Database
-    DATABASE_URL: str = "sqlite:///./geopulse.db" # Default to SQLite for local dev
+    DATABASE_URL: str = "sqlite:///./politifolio.db" # Default to SQLite for local dev
     
     # XRP Ledger
     XRPL_NODE_URL: str = "wss://s.altnet.rippletest.net:51233" # Using Testnet by default

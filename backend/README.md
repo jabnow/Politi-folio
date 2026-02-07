@@ -1,6 +1,6 @@
-# GeoPulse Coin Backend
+# Politifolio Backend
 
-This is the backend system for GeoPulse Coin, a compliance-focused asset issued on the XRP Ledger.
+This is the backend system for Politifolio, a compliance-focused asset issued on the XRP Ledger.
 
 ## Features
 
