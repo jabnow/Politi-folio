@@ -1,5 +1,6 @@
 reviews:
   enabled: true
+  request_review: true
   auto_review: true
 
 instructions: |
