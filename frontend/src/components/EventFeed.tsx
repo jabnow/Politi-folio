@@ -1,15 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import { useState, type HTMLAttributes } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { motion, AnimatePresence } from 'framer-motion';
 // import { AlertCircle, Globe, TrendingUp, FileText, Zap, Shield, Radio } from 'lucide-react';
-const AlertCircle = () => <span>⚠️</span>;
-const Globe = () => <span>🌐</span>;
-const TrendingUp = () => <span>📈</span>;
-const FileText = () => <span>📄</span>;
-const Zap = () => <span>⚡</span>;
-const Shield = () => <span>🛡️</span>;
-const Radio = () => <span>📻</span>;
+const AlertCircle = ({ className, ...props }: HTMLAttributes<HTMLSpanElement>) => <span className={className} {...props}>⚠️</span>;
+const Globe = ({ className, ...props }: HTMLAttributes<HTMLSpanElement>) => <span className={className} {...props}>🌐</span>;
+const TrendingUp = ({ className, ...props }: HTMLAttributes<HTMLSpanElement>) => <span className={className} {...props}>📈</span>;
+const FileText = ({ className, ...props }: HTMLAttributes<HTMLSpanElement>) => <span className={className} {...props}>📄</span>;
+const Zap = ({ className, ...props }: HTMLAttributes<HTMLSpanElement>) => <span className={className} {...props}>⚡</span>;
+const Shield = ({ className, ...props }: HTMLAttributes<HTMLSpanElement>) => <span className={className} {...props}>🛡️</span>;
+const Radio = ({ className, ...props }: HTMLAttributes<HTMLSpanElement>) => <span className={className} {...props}>📻</span>;
 
 interface GeopoliticalEvent {
   id: number;
@@ -104,7 +104,7 @@ const EVENT_FEED: GeopoliticalEvent[] = [
 ];
 
 export function EventFeed() {
-  const [events, setEvents] = useState(EVENT_FEED);
+  const [events] = useState(EVENT_FEED);
   const [filter, setFilter] = useState<'all' | 'CRITICAL' | 'HIGH'>('all');
 
   const getTypeIcon = (type: string) => {

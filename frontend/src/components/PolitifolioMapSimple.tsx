@@ -1,12 +1,10 @@
-import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 // import { Globe, Radio } from 'lucide-react';
-const Globe = () => <span>🌐</span>;
-const Radio = () => <span>📻</span>;
+const Globe = ({ className }: { className?: string }) => <span className={className}>🌐</span>;
 
 export function PolitifolioMapSimple({ 
-  selectedEvent, 
-  onEventClick 
+  selectedEvent: _selectedEvent, 
+  onEventClick: _onEventClick 
 }: { 
   selectedEvent: number | null, 
   onEventClick: (event: any) => void 
