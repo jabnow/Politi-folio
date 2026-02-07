@@ -1,14 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
 from database.database import get_db
-from database.models import Transaction
+from database.models import insert_transaction
 from pydantic import BaseModel
 from xrp_integration.token_controller import TokenController
 from compliance.sanctions_check import check_sanction_list
 from compliance.country_risk import get_country_risk
 
 router = APIRouter()
-# token_controller = TokenController() # Initialize inside or dependency injection to avoid errors if config is missing
 
 class TransactionCreate(BaseModel):
     destination: str
@@ -19,7 +17,7 @@ class TransactionCreate(BaseModel):
     receiver_country: str
 
 @router.post("/")
-def create_transaction(tx: TransactionCreate, db: Session = Depends(get_db)):
+def create_transaction(tx: TransactionCreate, db=Depends(get_db)):
     # 1. Compliance Check
     is_sanctioned, reason = check_sanction_list(tx.receiver_name, tx.receiver_country)
     if is_sanctioned:
@@ -47,18 +45,8 @@ def create_transaction(tx: TransactionCreate, db: Session = Depends(get_db)):
         tx_hash = "mock_tx_hash_12345"
 
     # 3. Log to DB
-    db_tx = Transaction(
-        tx_hash=tx_hash,
-        sender=tx.sender_name,
-        receiver=tx.receiver_name,
-        amount=tx.amount,
-        currency="GEO",
-        status="submitted",
-        compliance_check_passed=True,
-        risk_score_at_time=risk_score
+    db_tx = insert_transaction(
+        db, tx_hash, tx.sender_name, tx.receiver_name, tx.amount, "GEO",
+        "submitted", compliance_check_passed=True, risk_score_at_time=risk_score
     )
-    db.add(db_tx)
-    db.commit()
-    db.refresh(db_tx)
-    
     return db_tx

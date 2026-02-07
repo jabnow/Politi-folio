@@ -3,7 +3,7 @@
  * Uses DEDALUS_API_KEY + DEDALUS_PROJECT. No Gemini API key needed.
  * Steps 1-4 (GeoRisk, Market Sync, Recommendation, Summary) use this.
  */
-const DEDALUS_BASE = 'https://api.dedaluslabs.ai'
+const DEDALUS_BASE = process.env.DEDALUS_API_URL ?? 'https://api.dedaluslabs.ai'
 const DEFAULT_MODEL = 'anthropic/claude-3-5-sonnet'
 
 function getApiKey(): string | null {

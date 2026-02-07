@@ -20,7 +20,10 @@ export interface AIDecision {
   timestamp: string
 }
 
+const ts = (d: Date) => d.toISOString().replace('T', ' ').slice(0, 19)
+
 export function getDecisionsMock(): AIDecision[] {
+  const now = new Date()
   return [
     {
       id: 'DEC001',
@@ -33,7 +36,7 @@ export function getDecisionsMock(): AIDecision[] {
       reasoning: [
         'Counterparty appears on OFAC sanctions list',
         'Russia classified as high-risk jurisdiction (Score: 95)',
-        'Recent EU sanctions announced 2026-02-05',
+        `Recent EU sanctions announced ${ts(new Date(now.getTime() - 86400000)).slice(0, 10)}`,
         'Transaction amount exceeds threshold for sanctioned entities',
       ],
       complianceChecks: {
@@ -43,7 +46,7 @@ export function getDecisionsMock(): AIDecision[] {
         regulatoryStatus: 'REVIEW_REQUIRED',
       },
       confidence: 98,
-      timestamp: '2026-02-06 14:23:15',
+      timestamp: ts(now),
     },
     {
       id: 'DEC002',
@@ -66,7 +69,7 @@ export function getDecisionsMock(): AIDecision[] {
         regulatoryStatus: 'REVIEW_REQUIRED',
       },
       confidence: 92,
-      timestamp: '2026-02-06 14:21:33',
+      timestamp: ts(new Date(now.getTime() - 2 * 60000)),
     },
     {
       id: 'DEC003',
@@ -89,7 +92,7 @@ export function getDecisionsMock(): AIDecision[] {
         regulatoryStatus: 'COMPLIANT',
       },
       confidence: 96,
-      timestamp: '2026-02-06 14:22:48',
+      timestamp: ts(new Date(now.getTime() - 1 * 60000)),
     },
     {
       id: 'DEC004',
@@ -111,7 +114,7 @@ export function getDecisionsMock(): AIDecision[] {
         regulatoryStatus: 'REVIEW_REQUIRED',
       },
       confidence: 85,
-      timestamp: '2026-02-06 14:20:12',
+      timestamp: ts(new Date(now.getTime() - 3 * 60000)),
     },
     {
       id: 'DEC005',
@@ -133,7 +136,7 @@ export function getDecisionsMock(): AIDecision[] {
         regulatoryStatus: 'COMPLIANT',
       },
       confidence: 94,
-      timestamp: '2026-02-06 14:19:44',
+      timestamp: ts(new Date(now.getTime() - 4 * 60000)),
     },
   ]
 }

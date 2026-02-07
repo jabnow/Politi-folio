@@ -4,7 +4,7 @@
  */
 import type { Request, Response } from 'express'
 
-const DEDALUS_BASE = 'https://api.dedaluslabs.ai'
+const DEDALUS_BASE = process.env.DEDALUS_API_URL ?? 'https://api.dedaluslabs.ai'
 
 export async function debugDedalus(req: Request, res: Response): Promise<void> {
   const key = process.env.DEDALUS_API_KEY

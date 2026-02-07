@@ -16,7 +16,10 @@ export interface ReconciliationTask {
   priority: 'low' | 'medium' | 'high' | 'critical'
 }
 
+const ts = (d: Date) => d.toISOString().replace('T', ' ').slice(0, 19)
+
 export function getReconciliationTasksMock(): ReconciliationTask[] {
+  const now = new Date()
   return [
     {
       id: 'REC-001',
@@ -26,8 +29,8 @@ export function getReconciliationTasksMock(): ReconciliationTask[] {
       transactionsScanned: 1247,
       transactionsFlagged: 125,
       transactionsReconciled: 125,
-      startTime: '2026-02-06 14:23:00',
-      completionTime: '2026-02-06 14:23:45',
+      startTime: ts(now),
+      completionTime: ts(new Date(now.getTime() + 45 * 1000)),
       estimatedSavings: 3200,
       assignedTo: 'AI Engine',
       priority: 'critical',
@@ -40,8 +43,8 @@ export function getReconciliationTasksMock(): ReconciliationTask[] {
       transactionsScanned: 892,
       transactionsFlagged: 45,
       transactionsReconciled: 45,
-      startTime: '2026-02-06 14:18:00',
-      completionTime: '2026-02-06 14:18:32',
+      startTime: ts(new Date(now.getTime() - 5 * 60000)),
+      completionTime: ts(new Date(now.getTime() - 5 * 60000 + 32 * 1000)),
       estimatedSavings: 1800,
       assignedTo: 'AI Engine',
       priority: 'high',
@@ -54,7 +57,7 @@ export function getReconciliationTasksMock(): ReconciliationTask[] {
       transactionsScanned: 3421,
       transactionsFlagged: 234,
       transactionsReconciled: 156,
-      startTime: '2026-02-06 14:12:00',
+      startTime: ts(new Date(now.getTime() - 11 * 60000)),
       estimatedSavings: 2400,
       priority: 'medium',
     },
@@ -66,7 +69,7 @@ export function getReconciliationTasksMock(): ReconciliationTask[] {
       transactionsScanned: 567,
       transactionsFlagged: 156,
       transactionsReconciled: 142,
-      startTime: '2026-02-06 13:58:00',
+      startTime: ts(new Date(now.getTime() - 25 * 60000)),
       estimatedSavings: 1200,
       assignedTo: 'Compliance Team',
       priority: 'high',
@@ -79,8 +82,8 @@ export function getReconciliationTasksMock(): ReconciliationTask[] {
       transactionsScanned: 8945,
       transactionsFlagged: 23,
       transactionsReconciled: 23,
-      startTime: '2026-02-06 09:00:00',
-      completionTime: '2026-02-06 09:02:15',
+      startTime: ts(new Date(now.getTime() - 5 * 3600000)),
+      completionTime: ts(new Date(now.getTime() - 5 * 3600000 + 135 * 1000)),
       estimatedSavings: 4500,
       assignedTo: 'AI Engine',
       priority: 'low',

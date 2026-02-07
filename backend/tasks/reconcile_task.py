@@ -1,34 +1,33 @@
 from .celery_app import celery_app
-from database.database import SessionLocal
-from database.models import Transaction
+from database.database import db_connection
 from xrp_integration.xrp_utils import get_client
 from xrpl.models.requests import Tx
-import time
 
 @celery_app.task
 def reconcile_transactions():
-    # Check pending or submitted transactions against XRPL
-    db = SessionLocal()
     client = get_client()
-    try:
-        pending_txs = db.query(Transaction).filter(Transaction.status == "submitted").all()
-        for tx in pending_txs:
+    with db_connection() as conn:
+        pending = conn.execute(
+            "SELECT * FROM transactions WHERE status = ?", ("submitted",)
+        ).fetchall()
+        for row in pending:
+            tx_hash = row["tx_hash"]
+            if not tx_hash or tx_hash == "unknown_hash":
+                continue
             try:
-                if not tx.tx_hash or tx.tx_hash == "unknown_hash":
-                    continue
-                
-                # Query XRPL for status
-                # Note: In a real app, we handle pagination and history properly
-                tx_response = client.request(Tx(transaction=tx.tx_hash))
+                tx_response = client.request(Tx(transaction=tx_hash))
                 if tx_response.is_successful():
                     meta = tx_response.result.get("meta", {})
                     if meta.get("TransactionResult") == "tesSUCCESS":
-                        tx.status = "success"
+                        conn.execute(
+                            "UPDATE transactions SET status = ? WHERE id = ?",
+                            ("success", row["id"]),
+                        )
                     else:
-                        tx.status = "failed"
-                    db.commit()
+                        conn.execute(
+                            "UPDATE transactions SET status = ? WHERE id = ?",
+                            ("failed", row["id"]),
+                        )
             except Exception as e:
-                print(f"Error reconciling tx {tx.tx_hash}: {e}")
-    finally:
-        db.close()
+                print(f"Error reconciling tx {tx_hash}: {e}")
     return "Reconciliation complete"

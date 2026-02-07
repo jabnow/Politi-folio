@@ -11,6 +11,8 @@ import { runReasoning } from '../services/agentuity.service.js'
 import { getEstimatesForTickers } from '../services/financial-datasets.service.js'
 import { computeRebalance } from '../services/rebalance.service.js'
 import { storeEvent } from '../services/events.store.js'
+import { storeKeyEvent, initTables, insertGeoEvent, insertReconciliationTask } from '../services/sqlite.service.js'
+import type { GeopoliticalEvent } from '../mocks/events.mock.js'
 
 /** Format YYYY-MM-DD HH:MM:SS for World News API */
 function toApiDate(d: Date): string {
@@ -108,15 +110,59 @@ export async function runWorkflow(req: Request, res: Response): Promise<void> {
       step5_rebalance: rebalance,
     }
 
-    // Store as key event
-    const stored = storeEvent({
+    // Store as key event - SQLite first, in-memory fallback
+    const eventPayload = {
       timestamp: new Date().toISOString(),
       news: result.step1_news,
       dedalus: result.step2_dedalus,
       reasoning: result.step3_reasoning,
       estimates: result.step4_estimates,
       rebalance: result.step5_rebalance,
-    })
+    }
+    let stored: { id: string }
+    try {
+      initTables()
+      const id = `wf-${Date.now()}`
+
+      // Wire workflow results into dashboards: geo_events + reconciliation_tasks
+      const dedalus = result.step2_dedalus
+      const rebalance = result.step5_rebalance
+      const now = new Date().toISOString().replace('T', ' ').slice(0, 19)
+      result.step1_news.forEach((n) => {
+        const geo: Omit<GeopoliticalEvent, 'id'> = {
+          timestamp: n.publish_date ?? now,
+          type: 'political',
+          severity: (dedalus?.severity ?? 'MEDIUM') as GeopoliticalEvent['severity'],
+          title: n.title,
+          description: n.summary ?? n.text?.slice(0, 300) ?? '',
+          country: dedalus?.affected_countries?.[0] ?? 'Global',
+          affectedTransactions: 0,
+          source: n.authors?.[0] ?? 'World News API',
+        }
+        insertGeoEvent(geo)
+      })
+      if (rebalance.adjustments.length > 0) {
+        insertReconciliationTask({
+          id: `rec-${Date.now()}`,
+          eventType: dedalus?.event_type ?? 'Workflow Rebalance',
+          triggeredBy: 'Geopolitical Workflow',
+          status: 'completed',
+          transactionsScanned: 0,
+          transactionsFlagged: 0,
+          transactionsReconciled: rebalance.adjustments.length,
+          startTime: now,
+          completionTime: now,
+          estimatedSavings: 0,
+          assignedTo: 'AI Engine',
+          priority: 'high',
+        })
+      }
+
+      const dbStored = storeKeyEvent(eventPayload, id)
+      stored = dbStored ?? storeEvent(eventPayload)
+    } catch {
+      stored = storeEvent(eventPayload)
+    }
 
     res.json({
       ...result,

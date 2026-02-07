@@ -1,7 +1,5 @@
 fastapi>=0.110.0
 uvicorn>=0.29.0
-sqlalchemy>=2.0.29
-alembic>=1.13.1
 textblob>=0.18.0
 celery>=5.3.6
 redis>=5.0.3

@@ -1,6 +1,19 @@
 {
+  "scripts": {
+    "dev": "concurrently -n backend,frontend -c blue,green \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  },
   "dependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "better-sqlite3": "^12.6.2",
     "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "sql.js": "^1.13.0",
+    "sqlalchemy": "^10.1.1"
     "dotenv": "^17.2.4",
     "express": "^5.2.1",
     "xrpl": "^4.5.0"

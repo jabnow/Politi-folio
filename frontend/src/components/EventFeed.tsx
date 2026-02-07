@@ -16,11 +16,18 @@ export function EventFeed() {
   const [events, setEvents] = useState<GeopoliticalEvent[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const refresh = () => {
+    setLoading(true);
     fetchEvents().then((data) => {
       setEvents(data);
       setLoading(false);
     });
+  };
+  useEffect(() => {
+    refresh();
+    const handler = () => refresh();
+    window.addEventListener('politifolio-refresh', handler);
+    return () => window.removeEventListener('politifolio-refresh', handler);
   }, []);
   const [filter, setFilter] = useState<'all' | 'CRITICAL' | 'HIGH'>('all');
 

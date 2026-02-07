@@ -4,7 +4,9 @@
  */
 import type { DedalusEvent } from '../types/workflow.types.js'
 
-const DEDALUS_BASE = 'https://api.dedaluslabs.ai'
+const DEDALUS_BASE = process.env.DEDALUS_API_URL ?? 'https://api.dedaluslabs.ai'
+/** Max chars to avoid token limit / payload issues */
+const MAX_INPUT_CHARS = 8000
 
 function getApiKey(): string {
   const key = process.env.DEDALUS_API_KEY
@@ -12,8 +14,19 @@ function getApiKey(): string {
   return key
 }
 
+function getHeaders(): Record<string, string> {
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${getApiKey()}`,
+    'Content-Type': 'application/json',
+  }
+  const project = process.env.DEDALUS_PROJECT
+  if (project) headers['X-Dedalus-Project'] = project
+  return headers
+}
+
 export async function analyzeNews(text: string): Promise<DedalusEvent | null> {
-  const key = getApiKey()
+  getApiKey() // ensure key is set before making request
+  const truncated = text.length > MAX_INPUT_CHARS ? text.slice(0, MAX_INPUT_CHARS) + '...[truncated]' : text
   const systemPrompt = `You are a geopolitical risk analyst. Extract structured risk events from news. Respond ONLY with valid JSON matching this schema:
 {
   "event_type": "string (e.g. Trade Restriction, Sanctions, Conflict)",
@@ -25,13 +38,10 @@ export async function analyzeNews(text: string): Promise<DedalusEvent | null> {
 
   const res = await fetch(`${DEDALUS_BASE}/v1/chat/completions`, {
     method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${key}`,
-      'Content-Type': 'application/json',
-    },
+    headers: getHeaders(),
     body: JSON.stringify({
-      model: 'anthropic/claude-3-5-sonnet',
-      messages: [{ role: 'user', content: text }],
+      model: process.env.DEDALUS_MODEL ?? 'anthropic/claude-3-5-sonnet',
+      messages: [{ role: 'user', content: truncated }],
       system: systemPrompt,
       max_tokens: 512,
       temperature: 0,
@@ -40,6 +50,11 @@ export async function analyzeNews(text: string): Promise<DedalusEvent | null> {
 
   if (!res.ok) {
     const err = await res.text()
+    // 5xx = server-side; return null so workflow continues with fallbacks
+    if (res.status >= 500) {
+      console.warn(`[Dedalus] ${res.status} ${err}`)
+      return null
+    }
     throw new Error(`Dedalus API error: ${res.status} ${err}`)
   }
 
