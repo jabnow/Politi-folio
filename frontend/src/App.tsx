@@ -1,4 +1,4 @@
-import { useState, type HTMLAttributes } from 'react';
+import { useState } from 'react';
 import { runWorkflow } from '@/services/api.service';
 import { PolitifolioMapSimple } from '@/components/PolitifolioMapSimple';
 import { EventFeed } from '@/components/EventFeed';
@@ -21,19 +21,17 @@ import { Badge } from '@/components/ui/badge';
 //   FileText,
 //   BarChart3
 // } from 'lucide-react';
-// Mock Icons to bypass installation issues – accept className and other HTML attrs
-const icon = (emoji: string) => ({ className, ...props }: HTMLAttributes<HTMLSpanElement>) =>
-  <span className={className} {...props}>{emoji}</span>;
-const Globe = icon('🌐');
-const Radio = icon('📻');
-const Brain = icon('🧠');
-const Activity = icon('📈');
-const AlertCircle = icon('⚠️');
-const CheckCircle = icon('✅');
-const Zap = icon('⚡');
-const FileCheck = icon('📋');
-const FileText = icon('📄');
-const BarChart3 = icon('📊');
+// Mock Icons to bypass installation issues
+const Globe = ({ className }: { className?: string }) => <span className={className}>🌐</span>;
+const Radio = ({ className }: { className?: string }) => <span className={className}>📻</span>;
+const Brain = ({ className }: { className?: string }) => <span className={className}>🧠</span>;
+const Activity = ({ className }: { className?: string }) => <span className={className}>📈</span>;
+const AlertCircle = ({ className }: { className?: string }) => <span className={className}>⚠️</span>;
+const CheckCircle = ({ className }: { className?: string }) => <span className={className}>✅</span>;
+const Zap = ({ className }: { className?: string }) => <span className={className}>⚡</span>;
+const FileCheck = ({ className }: { className?: string }) => <span className={className}>📋</span>;
+const FileText = ({ className }: { className?: string }) => <span className={className}>📄</span>;
+const BarChart3 = ({ className }: { className?: string }) => <span className={className}>📊</span>;
 import './index.css'
 
 export default function App() {
@@ -50,7 +48,7 @@ export default function App() {
   };
 
   return (
-    <div className="dark min-h-screen min-h-dvh w-full max-w-[100vw] bg-zinc-950 text-white flex flex-col overflow-x-hidden">
+    <div className="dark h-screen w-screen bg-zinc-950 text-white flex flex-col overflow-hidden">
       <Tabs defaultValue="map" className="flex-1 flex flex-col min-h-0">
         {/* Header */}
         <header className="border-b border-zinc-800 bg-zinc-900/50 backdrop-blur-xl shrink-0">
