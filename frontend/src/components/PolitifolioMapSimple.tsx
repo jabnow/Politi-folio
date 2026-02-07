@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useRef, useMemo } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
+import { motion } from 'framer-motion';
 import Globe from 'react-globe.gl';
 // import { Card } from '@/components/ui/card';
 import type { GeopoliticalEvent, Transaction, CountryRisk } from '../types';
@@ -11,11 +12,9 @@ import {
   Line,
   ZoomableGroup
 } from 'react-simple-maps';
-import { scaleLinear } from 'd3-scale';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-// import { Radio } from 'lucide-react';
-const Radio = ({ className }: { className?: string }) => <span className={className}>📻</span>;
+import { Radio } from 'lucide-react';
 
 // Mock Data (re-using your existing mocks or importing them if they were in a separate file)
 // Since we are replacing the file content, I will include the mocks here to ensure it works immediately.
@@ -204,7 +203,7 @@ function Map2DView({
   };
 
   return (
-    <div className="w-full h-full bg-zinc-950">
+    <div className="w-full h-full bg-transparent">
       <ComposableMap 
         projection="geoMercator"
         projectionConfig={{
@@ -454,10 +453,10 @@ export function PolitifolioMapSimple({
   }, [events]);
 
   return (
-    <div className="flex h-full w-full bg-zinc-950 overflow-hidden rounded-b-lg">
+    <div className="flex flex-1 min-h-0 w-full bg-transparent overflow-hidden rounded-b-lg">
       {/* Side News Feed - Left Column */}
-      <div className="w-100 border-r border-zinc-800 bg-zinc-900/50 backdrop-blur-sm flex flex-col shrink-0 overflow-hidden">
-        <div className="p-4 border-b border-zinc-800 shrink-0 flex items-center justify-between">
+      <div className="w-100 border-r flex flex-col shrink-0 overflow-hidden politifolio-card backdrop-blur-sm" style={{ borderColor: 'rgba(99, 102, 241, 0.2)' }}>
+        <div className="p-4 border-b shrink-0 flex items-center justify-between" style={{ borderColor: 'rgba(99, 102, 241, 0.2)' }}>
           <div>
             <h3 className="font-semibold text-white flex items-center gap-2">
               <Radio className="w-4 h-4 text-purple-500 animate-pulse" />
@@ -466,7 +465,7 @@ export function PolitifolioMapSimple({
             <p className="text-xs text-zinc-400 mt-1">Real-time global events feed</p>
           </div>
           
-          <div className="flex bg-zinc-800/50 p-0.5 rounded-lg border border-zinc-700/50">
+          <div className="flex p-0.5 rounded-lg politifolio-card" style={{ border: '1px solid rgba(99, 102, 241, 0.2)' }}>
             <button
               onClick={() => setEventFilter('ALL')}
               className={`px-2 py-1 text-[10px] font-medium rounded transition-all ${
@@ -481,7 +480,7 @@ export function PolitifolioMapSimple({
               onClick={() => setEventFilter('CRITICAL')}
               className={`px-2 py-1 text-[10px] font-medium rounded transition-all ${
                 eventFilter === 'CRITICAL' 
-                  ? 'bg-zinc-700 text-white shadow-sm' 
+                  ? 'bg-violet-600/80 text-white shadow-sm' 
                   : 'text-zinc-400 hover:text-zinc-300 border border-transparent'
               }`}
             >
@@ -491,7 +490,7 @@ export function PolitifolioMapSimple({
               onClick={() => setEventFilter('HIGH')}
               className={`px-2 py-1 text-[10px] font-medium rounded transition-all ${
                 eventFilter === 'HIGH' 
-                  ? 'bg-zinc-700 text-white shadow-sm' 
+                  ? 'bg-violet-600/80 text-white shadow-sm' 
                   : 'text-zinc-400 hover:text-zinc-300 border border-transparent'
               }`}
             >
@@ -503,17 +502,23 @@ export function PolitifolioMapSimple({
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {events
             .filter(e => eventFilter === 'ALL' || e.severity === eventFilter)
-            .map((event) => (
+            .map((event, idx) => (
+            <motion.div
+              key={event.id}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: idx * 0.04 }}
+              whileHover={{ scale: 1.02, boxShadow: '0 0 20px rgba(99, 102, 241, 0.3)' }}
+            >
             <Card 
-              key={event.id} 
-              className="bg-zinc-900 border-zinc-800 p-3 hover:bg-zinc-800 transition-colors cursor-pointer group"
+              className="p-3 hover:border-violet-500/40 transition-colors cursor-pointer group politifolio-card"
               onClick={() => onEventClick(event)}
             >
               <div className="flex items-start justify-between mb-2">
                 <Badge variant="outline" className={`text-[10px] px-1.5 py-0 ${
                   event.severity === 'CRITICAL' ? 'bg-red-500/10 text-red-500 border-red-500/20' :
                   event.severity === 'HIGH' ? 'bg-orange-500/10 text-orange-500 border-orange-500/20' :
-                  'bg-zinc-500/10 text-zinc-500 border-zinc-500/20'
+                  'politifolio-badge-neutral'
                 }`}>
                   {event.severity}
                 </Badge>
@@ -540,7 +545,7 @@ export function PolitifolioMapSimple({
                 </div>
               )}
 
-              <div className="flex items-center justify-between text-[10px] text-zinc-500 border-t border-zinc-800/50 pt-2">
+              <div className="flex items-center justify-between text-[10px] text-zinc-500 border-t border-white/10 pt-2">
                 <div className="flex items-center gap-1">
                   <span>🌍</span>
                   <span className="text-zinc-400">{event.country}</span>
@@ -548,15 +553,16 @@ export function PolitifolioMapSimple({
                 <span>{event.source}</span>
           </div>
             </Card>
+            </motion.div>
           ))}
         </div>
       </div>
 
       {/* Main Map Area - Right Column */}
-      <div ref={containerRef} className="flex-1 relative h-full bg-zinc-950 overflow-hidden">
+      <div ref={containerRef} className="flex-1 min-h-0 relative bg-transparent overflow-hidden">
         
         {/* View Toggle */}
-        <div className="absolute top-4 left-4 z-10 flex gap-2 bg-zinc-900/80 p-1 rounded-lg border border-zinc-700 backdrop-blur-sm">
+        <div className="absolute top-4 left-4 z-10 flex gap-2 p-1 rounded-lg backdrop-blur-sm politifolio-card" style={{ border: '1px solid rgba(99, 102, 241, 0.25)' }}>
           <button
             onClick={() => setViewMode('3D')}
             className={`px-3 py-1 text-xs font-semibold rounded transition-colors ${
@@ -649,7 +655,7 @@ export function PolitifolioMapSimple({
         )}
 
         {/* Map legend */}
-        <div className="absolute bottom-8 right-8 bg-zinc-900/90 backdrop-blur-sm border border-zinc-700 rounded-lg p-4 text-white text-sm shadow-xl pointer-events-none">
+        <div className="absolute bottom-8 right-8 backdrop-blur-sm rounded-lg p-4 text-white text-sm shadow-xl pointer-events-none politifolio-card" style={{ border: '1px solid rgba(99, 102, 241, 0.2)' }}>
           <h3 className="font-semibold mb-3">Live Intelligence</h3>
           <div className="space-y-2">
             <div className="flex items-center gap-2">
@@ -665,7 +671,7 @@ export function PolitifolioMapSimple({
               <span className="text-zinc-300">Live Transaction</span>
             </div>
           </div>
-          <div className="mt-3 pt-3 border-t border-zinc-700 text-xs text-zinc-500">
+          <div className="mt-3 pt-3 border-t border-white/10 text-xs text-zinc-500">
             <p>Interactive Visualization</p>
             <p>Switch views top-left</p>
             </div>

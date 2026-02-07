@@ -1,16 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-// import { Brain, CheckCircle, XCircle, AlertTriangle, FileText, Globe, Shield } from 'lucide-react';
-const Brain = ({ className }: { className?: string }) => <span className={className}>🧠</span>;
-const CheckCircle = ({ className }: { className?: string }) => <span className={className}>✅</span>;
-const XCircle = ({ className }: { className?: string }) => <span className={className}>❌</span>;
-const AlertTriangle = ({ className }: { className?: string }) => <span className={className}>⚠️</span>;
-const FileText = ({ className }: { className?: string }) => <span className={className}>📄</span>;
-const Globe = ({ className }: { className?: string }) => <span className={className}>🌐</span>;
-const Shield = ({ className }: { className?: string }) => <span className={className}>🛡️</span>;
-import { motion } from 'framer-motion';
+import { Brain, CheckCircle, XCircle, AlertTriangle, FileText, Globe, Shield } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { fetchDecisions, type AIDecision } from '@/services/api.service';
 
 export function AIDecisionPanel() {
@@ -47,7 +40,7 @@ export function AIDecisionPanel() {
       case 'HIGH': return 'text-orange-500 bg-orange-500/10 border-orange-500/20';
       case 'MEDIUM': return 'text-yellow-500 bg-yellow-500/10 border-yellow-500/20';
       case 'LOW': return 'text-green-500 bg-green-500/10 border-green-500/20';
-      default: return 'text-zinc-500 bg-zinc-500/10 border-zinc-500/20';
+      default: return 'politifolio-badge-neutral';
     }
   };
 
@@ -61,10 +54,9 @@ export function AIDecisionPanel() {
   };
 
   return (
-    <div className="min-h-full flex flex-col lg:flex-row gap-4 p-4 bg-zinc-950 overflow-auto">
-      {/* Decision Queue */}
+    <div className="min-h-full flex flex-col lg:flex-row gap-4 p-4 overflow-auto">
       <div className="w-full lg:w-80 flex flex-col gap-4 shrink-0 lg:shrink">
-        <Card className="bg-zinc-900 border-zinc-800 p-4">
+        <Card className="p-4">
           <div className="flex items-center gap-2 mb-4">
             <Brain className="w-5 h-5 text-purple-500" />
             <h3 className="font-semibold text-white">AI Decision Queue</h3>
@@ -78,8 +70,8 @@ export function AIDecisionPanel() {
                 onClick={() => setCardIndex(idx)}
                 className={`p-3 rounded-lg cursor-pointer transition-colors ${
                   cardIndex === idx
-                    ? 'bg-zinc-800 border border-zinc-700'
-                    : 'bg-zinc-800/50 border border-transparent hover:bg-zinc-800'
+                    ? 'politifolio-panel border-purple-500'
+                    : 'politifolio-panel border-transparent hover:border-violet-500/30'
                 }`}
               >
                 <div className="flex items-start justify-between mb-2">
@@ -102,7 +94,7 @@ export function AIDecisionPanel() {
             <button
               onClick={goPrev}
               disabled={cardIndex === 0}
-              className="px-2 py-1 rounded hover:bg-zinc-800 disabled:opacity-40"
+              className="px-2 py-1 rounded politifolio-panel hover:bg-violet-600/20 disabled:opacity-40"
             >
               ← Prev
             </button>
@@ -110,7 +102,7 @@ export function AIDecisionPanel() {
             <button
               onClick={goNext}
               disabled={cardIndex >= decisions.length - 1}
-              className="px-2 py-1 rounded hover:bg-zinc-800 disabled:opacity-40"
+              className="px-2 py-1 rounded politifolio-panel hover:bg-violet-600/20 disabled:opacity-40"
             >
               Next →
             </button>
@@ -118,7 +110,8 @@ export function AIDecisionPanel() {
         </Card>
 
         {/* Quick Stats - live counters */}
-        <Card className="bg-zinc-900 border-zinc-800 p-4">
+        <motion.div whileHover={{ scale: 1.02, boxShadow: '0 0 24px rgba(99, 102, 241, 0.2)' }}>
+        <Card className="p-4">
           <div className="text-xs text-zinc-400 mb-3">Today's Analysis</div>
           <div className="space-y-3">
             <div className="flex items-center justify-between">
@@ -139,6 +132,7 @@ export function AIDecisionPanel() {
             </div>
           </div>
         </Card>
+        </motion.div>
       </div>
 
       {/* Decision Details */}
@@ -147,7 +141,15 @@ export function AIDecisionPanel() {
           <div className="flex items-center justify-center p-8 text-zinc-400">Loading decisions...</div>
         ) : selectedDecision ? (
         <>
-        <Card className="bg-zinc-900 border-zinc-800 p-6">
+        <AnimatePresence mode="wait">
+        <motion.div
+          key={cardIndex}
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -20 }}
+          transition={{ duration: 0.25 }}
+        >
+        <Card className="p-6">
           <div className="flex items-start justify-between mb-6">
             <div>
               <div className="flex items-center gap-3 mb-2">
@@ -212,7 +214,7 @@ export function AIDecisionPanel() {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: idx * 0.1 }}
-                  className="flex items-start gap-2 p-3 bg-zinc-800/50 rounded-lg"
+                  className="flex items-start gap-2 p-3 politifolio-panel rounded-lg"
                 >
                   <div className="mt-0.5">
                     <div className="w-1.5 h-1.5 rounded-full bg-purple-500"></div>
@@ -230,7 +232,7 @@ export function AIDecisionPanel() {
               Compliance Verification
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="p-3 bg-zinc-800/50 rounded-lg">
+              <div className="p-3 politifolio-panel rounded-lg">
                 <div className="text-xs text-zinc-400 mb-1">Sanctions List</div>
                 <div className={`text-lg font-semibold ${
                   selectedDecision.complianceChecks.sanctionsList === 'CLEAR' ? 'text-green-500' : 'text-red-500'
@@ -238,7 +240,7 @@ export function AIDecisionPanel() {
                   {selectedDecision.complianceChecks.sanctionsList}
                 </div>
               </div>
-              <div className="p-3 bg-zinc-800/50 rounded-lg">
+              <div className="p-3 politifolio-panel rounded-lg">
                 <div className="text-xs text-zinc-400 mb-1">Country Risk Score</div>
                 <div className={`text-lg font-semibold ${
                   selectedDecision.complianceChecks.countryRisk < 30 ? 'text-green-500' :
@@ -247,7 +249,7 @@ export function AIDecisionPanel() {
                   {selectedDecision.complianceChecks.countryRisk}/100
                 </div>
               </div>
-              <div className="p-3 bg-zinc-800/50 rounded-lg">
+              <div className="p-3 politifolio-panel rounded-lg">
                 <div className="text-xs text-zinc-400 mb-1">Transaction Pattern</div>
                 <div className={`text-lg font-semibold ${
                   selectedDecision.complianceChecks.transactionPattern === 'NORMAL' ? 'text-green-500' : 'text-orange-500'
@@ -255,7 +257,7 @@ export function AIDecisionPanel() {
                   {selectedDecision.complianceChecks.transactionPattern}
                 </div>
               </div>
-              <div className="p-3 bg-zinc-800/50 rounded-lg">
+              <div className="p-3 politifolio-panel rounded-lg">
                 <div className="text-xs text-zinc-400 mb-1">Regulatory Status</div>
                 <div className={`text-sm font-semibold ${
                   selectedDecision.complianceChecks.regulatoryStatus === 'COMPLIANT' ? 'text-green-500' : 'text-orange-500'
@@ -283,14 +285,16 @@ export function AIDecisionPanel() {
             <XCircle className="w-4 h-4 mr-2" />
             Reject Transaction
           </Button>
-          <Button className="bg-zinc-800 hover:bg-zinc-700 text-white">
+          <Button className="politifolio-panel hover:bg-violet-600/30 text-white">
             <FileText className="w-4 h-4 mr-2" />
             Generate Report
           </Button>
         </div>
+        </motion.div>
+        </AnimatePresence>
         </>
         ) : (
-          <Card className="bg-zinc-900 border-zinc-800 p-6">
+          <Card className="p-6">
             <div className="text-center text-zinc-400 py-8">No decisions to display</div>
           </Card>
         )}

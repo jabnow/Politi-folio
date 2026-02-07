@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
-import { XrplService } from '../services/xrpl.service';
-import { RlusdService } from '../services/rlusd.service'; // new
+import { XrplService } from '../services/xrpl.service.js';
+import { RlusdService } from '../services/rlusd.service.js';
 
 const xrpl = new XrplService();
 const rlusd = new RlusdService();
@@ -13,7 +13,7 @@ export async function getReconciliation(req: Request, res: Response) {
     const rlusdBalance = await rlusd.getRlusdBalance(walletAddress);
 
     // Calculate risk dynamically based on risk scores
-    const highestRiskScore = Math.max(...txs.map(t => t.riskScore));
+    const highestRiskScore = Math.max(...txs.map((t: { riskScore: number }) => t.riskScore), 0);
     let suggestedRebalance = 'Portfolio stable';
     if (highestRiskScore > 70) {
       suggestedRebalance = 'High risk detected → consider moving to RLUSD';
