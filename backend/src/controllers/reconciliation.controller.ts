@@ -1,13 +1,19 @@
-/**
- * Reconciliation controller
- */
-import type { Request, Response } from 'express'
-import { getTransactionsMock } from '../mocks/transactions.mock.js'
+import type { Request, Response } from 'express';
+import { XrplService } from '../services/xrpl.service';
+
+// Initialize the XRPL service
+const xrplService = new XrplService();
 
 export async function getReconciliation(
-  _req: Request,
+  req: Request,
   res: Response
 ): Promise<void> {
-  const transactions = getTransactionsMock()
-  res.json(transactions)
+  try {
+    const { walletAddress } = req.params;
+    const transactions = await xrplService.monitorTransactions(walletAddress);
+    res.json(transactions);
+  } catch (error) {
+    console.error('Error fetching transactions:', error);
+    res.status(500).json({ error: 'Failed to fetch transactions' });
+  }
 }
