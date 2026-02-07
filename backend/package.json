@@ -9,8 +9,9 @@
     "start": "node dist/server.js"
   },
   "dependencies": {
-    "express": "^4.21.0",
-    "cors": "^2.8.5"
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
+    "express": "^4.21.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
