@@ -1,0 +1,16 @@
+id,name,country,type
+1,LAZARUS GROUP,NK,Organization
+2,RUSSIAN IMPERIAL MOVEMENT,RU,Organization
+3,AL-QAIDA,AF,Organization
+4,IRGC,IR,Organization
+5,WAGNER GROUP,RU,Organization
+6,KIM JONG UN,NK,Individual
+7,VLADIMIR PUTIN,RU,Individual
+8,BASHAR AL-ASSAD,SY,Individual
+9,NICOLAS MADURO,VE,Individual
+10,TORNADO CASH,online,Protocol
+11,BLENDER.IO,online,Protocol
+12,CHEXEX,RU,Exchange
+13,GARANTEX,RU,Exchange
+14,NOBELIUM,RU,CyberGroup
+15,APT38,NK,CyberGroup
