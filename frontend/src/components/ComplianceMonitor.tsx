@@ -3,28 +3,18 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-// import { 
-//   Shield, 
-//   FileText, 
-//   CheckCircle, 
-//   XCircle,
-//   Clock,
-//   Download,
-//   Eye,
-//   Zap,
-//   Globe,
-//   BookOpen
-// } from 'lucide-react';
-const Shield = ({ className }: { className?: string }) => <span className={className}>🛡️</span>;
-const FileText = ({ className }: { className?: string }) => <span className={className}>📄</span>;
-const CheckCircle = ({ className }: { className?: string }) => <span className={className}>✅</span>;
-const XCircle = ({ className }: { className?: string }) => <span className={className}>❌</span>;
-const Clock = ({ className }: { className?: string }) => <span className={className}>🕒</span>;
-const Download = ({ className }: { className?: string }) => <span className={className}>⬇️</span>;
-const Eye = ({ className }: { className?: string }) => <span className={className}>👁️</span>;
-const Zap = ({ className }: { className?: string }) => <span className={className}>⚡</span>;
-const Globe = ({ className }: { className?: string }) => <span className={className}>🌐</span>;
-const BookOpen = ({ className }: { className?: string }) => <span className={className}>📖</span>;
+import {
+  Shield,
+  FileText,
+  CheckCircle,
+  XCircle,
+  Clock,
+  Download,
+  Eye,
+  Zap,
+  Globe,
+  BookOpen,
+} from 'lucide-react';
 import { motion } from 'framer-motion';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
@@ -169,10 +159,10 @@ export function ComplianceMonitor() {
   };
 
   return (
-    <div className="min-h-full flex flex-col lg:flex-row gap-4 p-4 bg-zinc-950 overflow-auto">
+    <div className="min-h-full flex flex-col lg:flex-row gap-4 p-4 bg-transparent overflow-auto">
       {/* Left Panel - Document List */}
       <div className="w-full lg:w-96 flex flex-col gap-4 shrink-0 lg:shrink">
-        <Card className="bg-zinc-900 border-zinc-800 p-4">
+        <Card className="p-4">
           <div className="flex items-center gap-2 mb-4">
             <Shield className="w-5 h-5 text-purple-500" />
             <h3 className="font-semibold text-white">Compliance Documents</h3>
@@ -180,11 +170,11 @@ export function ComplianceMonitor() {
 
           {/* Quick Stats */}
           <div className="grid grid-cols-2 gap-3 mb-4">
-            <div className="bg-zinc-800/50 rounded-lg p-3">
+            <div className="politifolio-panel rounded-lg p-3">
               <div className="text-xs text-zinc-400 mb-1">Overall Score</div>
               <div className="text-2xl font-bold text-green-500">96%</div>
             </div>
-            <div className="bg-zinc-800/50 rounded-lg p-3">
+            <div className="politifolio-panel rounded-lg p-3">
               <div className="text-xs text-zinc-400 mb-1">Critical Items</div>
               <div className="text-2xl font-bold text-red-500">3</div>
             </div>
@@ -193,16 +183,19 @@ export function ComplianceMonitor() {
 
         {/* Document List */}
         <div className="flex-1 overflow-y-auto space-y-2">
-          {documents.map((doc) => (
+          {documents.map((doc, idx) => (
             <motion.div
               key={doc.id}
-              whileHover={{ scale: 1.02 }}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: idx * 0.05 }}
+              whileHover={{ scale: 1.02, boxShadow: '0 0 20px rgba(99, 102, 241, 0.2)' }}
               onClick={() => setSelectedDoc(doc)}
             >
               <Card className={`p-3 cursor-pointer transition-colors ${
                 selectedDoc?.id === doc.id
-                  ? 'bg-zinc-800 border-purple-500'
-                  : 'bg-zinc-900 border-zinc-800 hover:bg-zinc-800/50'
+                  ? 'politifolio-panel border-purple-500'
+                  : 'politifolio-card hover:border-violet-500/40'
               }`}>
                 <div className="flex items-start gap-2 mb-2">
                   <div className={`p-1.5 rounded ${getImpactColor(doc.impact)}`}>
@@ -232,7 +225,7 @@ export function ComplianceMonitor() {
         </div>
 
         {/* Compliance Score Trend */}
-        <Card className="bg-zinc-900 border-zinc-800 p-4">
+        <Card className="p-4">
           <h4 className="text-sm font-semibold text-white mb-3">Compliance Score Trend</h4>
           <ResponsiveContainer width="100%" height={120}>
             <LineChart data={complianceScoreData}>
@@ -252,7 +245,7 @@ export function ComplianceMonitor() {
       <div className="flex-1 flex flex-col gap-4 overflow-y-auto min-w-0">
         {selectedDoc && (
           <>
-            <Card className="bg-zinc-900 border-zinc-800 p-6">
+            <Card className="p-6">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-3">
@@ -297,15 +290,15 @@ export function ComplianceMonitor() {
 
               {/* Key Information Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                <div className="bg-zinc-800/50 rounded-lg p-4">
+                <div className="politifolio-panel rounded-lg p-4">
                   <div className="text-xs text-zinc-400 mb-1">Jurisdiction</div>
                   <div className="text-lg font-bold text-white">{selectedDoc.jurisdiction}</div>
                 </div>
-                <div className="bg-zinc-800/50 rounded-lg p-4">
+                <div className="politifolio-panel rounded-lg p-4">
                   <div className="text-xs text-zinc-400 mb-1">Requirements Extracted</div>
                   <div className="text-lg font-bold text-purple-500">{selectedDoc.extractedRequirements}</div>
                 </div>
-                <div className="bg-zinc-800/50 rounded-lg p-4">
+                <div className="politifolio-panel rounded-lg p-4">
                   <div className="text-xs text-zinc-400 mb-1">Deadline</div>
                   <div className="text-lg font-bold text-orange-500">{selectedDoc.implementationDeadline}</div>
                 </div>
@@ -316,7 +309,7 @@ export function ComplianceMonitor() {
                 <h3 className="text-sm font-semibold text-white mb-3">Affected Products & Services</h3>
                 <div className="flex flex-wrap gap-2">
                   {selectedDoc.affectedProducts.map((product, idx) => (
-                    <Badge key={idx} variant="outline" className="bg-zinc-800 text-zinc-300 border-zinc-700">
+                    <Badge key={idx} variant="outline" className="politifolio-panel text-zinc-300">
                       {product}
                     </Badge>
                   ))}
@@ -342,7 +335,7 @@ export function ComplianceMonitor() {
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: idx * 0.1 }}
-                      className="flex items-start gap-3 p-3 bg-zinc-800/50 rounded-lg"
+                      className="flex items-start gap-3 p-3 politifolio-panel rounded-lg"
                     >
                       <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 shrink-0" />
                       <span className="text-sm text-zinc-300">{req}</span>
@@ -376,7 +369,7 @@ export function ComplianceMonitor() {
 
             {/* Impact Analysis */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <Card className="bg-zinc-900 border-zinc-800 p-4">
+              <Card className="p-4">
                 <h3 className="text-sm font-semibold text-white mb-4">Regulatory Coverage by Jurisdiction</h3>
                 <ResponsiveContainer width="100%" height={200}>
                   <PieChart>
@@ -401,7 +394,7 @@ export function ComplianceMonitor() {
                 </ResponsiveContainer>
               </Card>
 
-              <Card className="bg-zinc-900 border-zinc-800 p-4">
+              <Card className="p-4">
                 <h3 className="text-sm font-semibold text-white mb-4">Automation Impact</h3>
                 <div className="space-y-4">
                   <div>

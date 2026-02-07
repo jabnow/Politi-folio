@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { motion } from 'framer-motion';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -44,15 +45,62 @@ const countryExposureData = [
   { country: 'Belarus', exposure: 280000, risk: 78, color: '#f87171' }
 ];
 
-// Risk score over time
-const riskTrendData = [
-  { date: '02/01', overall: 28, geopolitical: 35, credit: 22, market: 18 },
-  { date: '02/02', overall: 30, geopolitical: 38, credit: 24, market: 19 },
-  { date: '02/03', overall: 32, geopolitical: 42, credit: 25, market: 21 },
-  { date: '02/04', overall: 35, geopolitical: 48, credit: 27, market: 23 },
-  { date: '02/05', overall: 42, geopolitical: 58, credit: 30, market: 26 },
-  { date: '02/06', overall: 47, geopolitical: 65, credit: 32, market: 28 }
-];
+// Helper to generate risk trend data by time range
+function getRiskTrendData(range: '1D' | '1W' | '1M' | '3M'): { date: string; overall: number; geopolitical: number; credit: number; market: number }[] {
+  if (range === '1D') {
+    return Array.from({ length: 24 }, (_, i) => {
+      const t = i / 23;
+      const overall = Math.round(28 + t * 22 + (Math.sin(i * 0.5) * 3));
+      const geopolitical = Math.round(35 + t * 32 + (Math.sin(i * 0.3) * 5));
+      const credit = Math.round(22 + t * 12 + (Math.sin(i * 0.4) * 2));
+      const market = Math.round(18 + t * 12 + (Math.sin(i * 0.6) * 2));
+      return {
+        date: `${String(i).padStart(2, '0')}:00`,
+        overall: Math.min(100, Math.max(0, overall)),
+        geopolitical: Math.min(100, Math.max(0, geopolitical)),
+        credit: Math.min(100, Math.max(0, credit)),
+        market: Math.min(100, Math.max(0, market)),
+      };
+    });
+  }
+  if (range === '1W') {
+    return Array.from({ length: 7 }, (_, i) => {
+      const t = i / 6;
+      return {
+        date: `02/${String(i + 1).padStart(2, '0')}`,
+        overall: Math.round(28 + t * 22),
+        geopolitical: Math.round(35 + t * 32),
+        credit: Math.round(22 + t * 12),
+        market: Math.round(18 + t * 12),
+      };
+    });
+  }
+  if (range === '1M') {
+    return Array.from({ length: 30 }, (_, i) => {
+      const t = i / 29;
+      const d = new Date(2026, 0, 1 + i);
+      return {
+        date: `${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`,
+        overall: Math.round(20 + t * 35 + (Math.sin(i * 0.2) * 5)),
+        geopolitical: Math.round(25 + t * 45 + (Math.sin(i * 0.15) * 8)),
+        credit: Math.round(18 + t * 18 + (Math.sin(i * 0.25) * 3)),
+        market: Math.round(12 + t * 20 + (Math.sin(i * 0.2) * 4)),
+      };
+    });
+  }
+  // 3M: 12 weekly points
+  return Array.from({ length: 12 }, (_, i) => {
+    const t = i / 11;
+    const d = new Date(2025, 10, 1 + i * 7);
+    return {
+      date: `${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`,
+      overall: Math.round(18 + t * 40 + (Math.sin(i * 0.4) * 6)),
+      geopolitical: Math.round(22 + t * 50 + (Math.sin(i * 0.35) * 10)),
+      credit: Math.round(15 + t * 22 + (Math.sin(i * 0.5) * 4)),
+      market: Math.round(10 + t * 25 + (Math.sin(i * 0.45) * 5)),
+    };
+  });
+}
 
 // Sector exposure
 const sectorData = [
@@ -76,20 +124,24 @@ const riskFactorsData = [
 export function RiskAnalyticsDashboard() {
   const [timeRange, setTimeRange] = useState<'1D' | '1W' | '1M' | '3M'>('1W');
 
+  const riskTrendData = useMemo(() => getRiskTrendData(timeRange), [timeRange]);
+
   const totalExposure = countryExposureData.reduce((sum, c) => sum + c.exposure, 0);
   const highRiskExposure = countryExposureData.filter(c => c.risk >= 60).reduce((sum, c) => sum + c.exposure, 0);
   const currentRiskScore = 47;
   const riskChange = 12;
 
   return (
-    <div className="min-h-full flex flex-col gap-4 p-4 bg-zinc-950 overflow-y-auto overflow-x-hidden">
+    <div className="min-h-0 flex-1 flex flex-col overflow-y-auto overflow-x-hidden bg-transparent">
+      <div className="flex-1 flex flex-col gap-4 p-4 pb-8 max-w-7xl mx-auto w-full">
       {/* Header KPIs */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 shrink-0">
-        <Card className="bg-zinc-900 border-zinc-800 p-4">
+        <Card className=" p-4">
           <div className="flex items-start justify-between mb-2">
             <div>
               <div className="text-xs text-zinc-400 mb-1">Overall Risk Score</div>
               <div className="text-3xl font-bold text-orange-500">{currentRiskScore}</div>
+              <p className="text-[10px] text-zinc-500 mt-1.5 max-w-[200px]">Weighted composite of geopolitical, credit, market, and operational factors (0–100 scale).</p>
             </div>
             <div className="bg-orange-500/10 p-2 rounded-lg">
               <AlertTriangle className="w-5 h-5 text-orange-500" />
@@ -101,7 +153,7 @@ export function RiskAnalyticsDashboard() {
           </div>
         </Card>
 
-        <Card className="bg-zinc-900 border-zinc-800 p-4">
+        <Card className=" p-4">
           <div className="flex items-start justify-between mb-2">
             <div>
               <div className="text-xs text-zinc-400 mb-1">Total Exposure</div>
@@ -114,7 +166,7 @@ export function RiskAnalyticsDashboard() {
           <div className="text-xs text-zinc-400">Across {countryExposureData.length} countries</div>
         </Card>
 
-        <Card className="bg-zinc-900 border-zinc-800 p-4">
+        <Card className=" p-4">
           <div className="flex items-start justify-between mb-2">
             <div>
               <div className="text-xs text-zinc-400 mb-1">High-Risk Exposure</div>
@@ -127,7 +179,7 @@ export function RiskAnalyticsDashboard() {
           <div className="text-xs text-red-400">{((highRiskExposure / totalExposure) * 100).toFixed(1)}% of portfolio</div>
         </Card>
 
-        <Card className="bg-zinc-900 border-zinc-800 p-4">
+        <Card className=" p-4">
           <div className="flex items-start justify-between mb-2">
             <div>
               <div className="text-xs text-zinc-400 mb-1">Countries Monitored</div>
@@ -140,7 +192,7 @@ export function RiskAnalyticsDashboard() {
           <div className="text-xs text-orange-400">3 critical alerts</div>
         </Card>
 
-        <Card className="bg-zinc-900 border-zinc-800 p-4">
+        <Card className=" p-4">
           <div className="flex items-start justify-between mb-2">
             <div>
               <div className="text-xs text-zinc-400 mb-1">Risk Mitigation</div>
@@ -157,7 +209,7 @@ export function RiskAnalyticsDashboard() {
       {/* Main Charts Row */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
         {/* Risk Trend Chart */}
-        <Card className="bg-zinc-900 border-zinc-800 p-4 xl:col-span-2">
+        <Card className=" p-4 xl:col-span-2">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="font-semibold text-white">Risk Score Trend</h3>
@@ -171,7 +223,7 @@ export function RiskAnalyticsDashboard() {
                   className={`px-3 py-1 rounded text-xs transition-colors ${
                     timeRange === range
                       ? 'bg-purple-500 text-white'
-                      : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+                      : 'politifolio-panel text-zinc-400 hover:bg-violet-600/20'
                   }`}
                 >
                   {range}
@@ -193,7 +245,7 @@ export function RiskAnalyticsDashboard() {
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
               <XAxis dataKey="date" stroke="#71717a" style={{ fontSize: '12px' }} />
-              <YAxis stroke="#71717a" style={{ fontSize: '12px' }} />
+              <YAxis stroke="#71717a" style={{ fontSize: '12px' }} domain={[0, 100]} />
               <Tooltip 
                 contentStyle={{ backgroundColor: '#18181b', border: '1px solid #3f3f46', borderRadius: '8px' }}
                 labelStyle={{ color: '#a1a1aa' }}
@@ -208,7 +260,7 @@ export function RiskAnalyticsDashboard() {
         </Card>
 
         {/* Risk Factors Radar */}
-        <Card className="bg-zinc-900 border-zinc-800 p-4">
+        <Card className=" p-4">
           <h3 className="font-semibold text-white mb-4">Risk Factor Analysis</h3>
           <ResponsiveContainer width="100%" height={280}>
             <RadarChart data={riskFactorsData}>
@@ -227,7 +279,7 @@ export function RiskAnalyticsDashboard() {
       {/* Secondary Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Country Exposure */}
-        <Card className="bg-zinc-900 border-zinc-800 p-4">
+        <Card className=" p-4">
           <h3 className="font-semibold text-white mb-4">Country Risk Exposure</h3>
           <ResponsiveContainer width="100%" height={320}>
             <BarChart data={countryExposureData} layout="vertical">
@@ -248,7 +300,7 @@ export function RiskAnalyticsDashboard() {
         </Card>
 
         {/* Sector Distribution */}
-        <Card className="bg-zinc-900 border-zinc-800 p-4">
+        <Card className=" p-4">
           <h3 className="font-semibold text-white mb-4">Sector Exposure Distribution</h3>
           <ResponsiveContainer width="100%" height={320}>
             <PieChart>
@@ -276,7 +328,7 @@ export function RiskAnalyticsDashboard() {
       </div>
 
       {/* High Risk Countries Table */}
-      <Card className="bg-zinc-900 border-zinc-800 p-4">
+      <Card className="p-4 shrink-0">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold text-white">High-Risk Country Breakdown</h3>
           <Badge variant="outline" className="bg-red-500/10 text-red-500 border-red-500/20">
@@ -284,10 +336,10 @@ export function RiskAnalyticsDashboard() {
           </Badge>
         </div>
         
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto max-h-[400px] overflow-y-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-zinc-800">
+              <tr className="border-b border-white/10">
                 <th className="text-left text-xs text-zinc-400 pb-3">Country</th>
                 <th className="text-right text-xs text-zinc-400 pb-3">Exposure</th>
                 <th className="text-right text-xs text-zinc-400 pb-3">% of Portfolio</th>
@@ -298,7 +350,13 @@ export function RiskAnalyticsDashboard() {
             </thead>
             <tbody>
               {countryExposureData.map((country) => (
-                <tr key={country.country} className="border-b border-zinc-800/50 hover:bg-zinc-800/30">
+                <motion.tr
+                  key={country.country}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  whileHover={{ backgroundColor: 'rgba(255,255,255,0.06)' }}
+                  className="border-b border-white/5"
+                >
                   <td className="py-3">
                     <div className="flex items-center gap-2">
                       <Globe className="w-4 h-4 text-zinc-400" />
@@ -344,12 +402,13 @@ export function RiskAnalyticsDashboard() {
                       </Button>
                     )}
                   </td>
-                </tr>
+                </motion.tr>
               ))}
             </tbody>
           </table>
         </div>
       </Card>
+      </div>
     </div>
   );
 }

@@ -1,7 +1,10 @@
-import { Client, Wallet, dropsToXrp } from 'xrpl';
+import { Client, Wallet, dropsToXrp, xrpToDrops } from 'xrpl';
 import dotenv from 'dotenv';
 
 dotenv.config();
+
+/** Ripple epoch: seconds since Jan 1, 2000 00:00 UTC. Unix - 946684800 */
+const RIPPLE_EPOCH_OFFSET = 946684800;
 
 export class XrplService {
   private client: Client;
@@ -35,7 +38,7 @@ export class XrplService {
         const line = resp.result.lines.find(
           (l) => l.currency === currency && l.account === issuer
         );
-        return line ? line.balance : '0';
+        return line ? String(line.balance) : '0';
       }
 
       // Fallback to XRP
@@ -44,7 +47,8 @@ export class XrplService {
         account: address,
         ledger_index: 'validated',
       });
-      return dropsToXrp(info.result.account_data.Balance);
+      const bal = info.result.account_data.Balance;
+      return String(dropsToXrp(typeof bal === 'number' ? String(bal) : bal));
     } catch (err: any) {
       if (err.data?.error === 'actNotFound') return '0';
       throw err;
@@ -72,22 +76,27 @@ export class XrplService {
       if (tx.TransactionType === 'Payment') {
         if (typeof tx.Amount === 'string') {
           // XRP (drops)
-          amountStr = dropsToXrp(tx.Amount);
+          amountStr = String(dropsToXrp(tx.Amount));
+          currency = 'XRP';
+        } else if (typeof tx.Amount === 'number') {
+          amountStr = String(dropsToXrp(String(tx.Amount)));
           currency = 'XRP';
         } else if (tx.Amount && typeof tx.Amount === 'object') {
           // Issued currency
-          amountStr = tx.Amount.value || '0';
-          currency = tx.Amount.currency || 'Unknown';
+          amountStr = String((tx.Amount as { value?: unknown }).value || '0');
+          currency = (tx.Amount as { currency?: string }).currency || 'Unknown';
         }
 
         // Sometimes DeliveredAmount appears in meta instead
         if (entry.meta && entry.meta.delivered_amount) {
           delivered = entry.meta.delivered_amount;
           if (typeof delivered === 'string') {
-            amountStr = dropsToXrp(delivered);
-          } else if (delivered?.value) {
-            amountStr = delivered.value;
-            currency = delivered.currency || currency;
+            amountStr = String(dropsToXrp(delivered));
+          } else if (typeof delivered === 'number') {
+            amountStr = String(dropsToXrp(String(delivered)));
+          } else if (delivered && typeof delivered === 'object' && 'value' in delivered) {
+            amountStr = String((delivered as { value?: unknown }).value ?? '0');
+            currency = (delivered as { currency?: string }).currency || currency;
           }
         }
       } else {
@@ -145,15 +154,117 @@ export class XrplService {
     const signed = fromWallet.sign(prepared);
     const result = await this.client.submitAndWait(signed.tx_blob);
 
-    if (result.result.meta.TransactionResult !== 'tesSUCCESS') {
-      throw new Error(`Payment failed: ${result.result.meta.TransactionResult}`);
+    const payMeta = result.result.meta as { TransactionResult?: string } | undefined;
+    if (payMeta?.TransactionResult !== 'tesSUCCESS') {
+      throw new Error(`Payment failed: ${payMeta?.TransactionResult}`);
     }
 
     return {
       hash: result.result.hash,
-      result: result.result.meta.TransactionResult,
+      result: payMeta?.TransactionResult,
     };
   }
 
-  // Add more later: TrustSet, EscrowCreate, OfferCreate...
+  // ── Escrow: Create, Finish, Cancel, List ─────────────────────────────
+  async createEscrow(
+    owner: Wallet,
+    recipient: string,
+    amount: string,
+    currency: string,
+    cancelAfter: number,
+    issuer?: string,
+    finishAfter?: number
+  ) {
+    await this.connect();
+    const isXRP = currency === 'XRP';
+    const amountField = isXRP ? xrpToDrops(amount) : { value: amount, currency, issuer: issuer! };
+    const txJson: any = {
+      TransactionType: 'EscrowCreate',
+      Account: owner.address,
+      Destination: recipient,
+      Amount: amountField,
+      CancelAfter: cancelAfter,
+    };
+    if (finishAfter != null) txJson.FinishAfter = finishAfter;
+
+    const prepared = await this.client.autofill(txJson);
+    const signed = owner.sign(prepared);
+    const result = await this.client.submitAndWait(signed.tx_blob);
+
+    const createMeta = result.result.meta as { TransactionResult?: string } | undefined;
+    if (createMeta?.TransactionResult !== 'tesSUCCESS') {
+      throw new Error(`EscrowCreate failed: ${createMeta?.TransactionResult}`);
+    }
+
+    const seq = (prepared as any).Sequence;
+    return { hash: result.result.hash, sequence: seq };
+  }
+
+  async finishEscrow(owner: Wallet, sequence: number, fulfillment?: string) {
+    await this.connect();
+    const txJson: any = {
+      TransactionType: 'EscrowFinish',
+      Account: owner.address,
+      Owner: owner.address,
+      OfferSequence: sequence,
+    };
+    if (fulfillment) txJson.Fulfillment = fulfillment;
+
+    const prepared = await this.client.autofill(txJson);
+    const signed = owner.sign(prepared);
+    const result = await this.client.submitAndWait(signed.tx_blob);
+
+    const finishMeta = result.result.meta as { TransactionResult?: string } | undefined;
+    if (finishMeta?.TransactionResult !== 'tesSUCCESS') {
+      throw new Error(`EscrowFinish failed: ${finishMeta?.TransactionResult}`);
+    }
+
+    return { hash: result.result.hash };
+  }
+
+  async cancelEscrow(owner: Wallet, sequence: number) {
+    await this.connect();
+    const txJson: Record<string, unknown> = {
+      TransactionType: 'EscrowCancel',
+      Account: owner.address,
+      Owner: owner.address,
+      OfferSequence: sequence,
+    };
+
+    const prepared = await this.client.autofill(txJson as any);
+    const signed = owner.sign(prepared);
+    const result = await this.client.submitAndWait(signed.tx_blob);
+
+    const cancelMeta = result.result.meta as { TransactionResult?: string } | undefined;
+    if (cancelMeta?.TransactionResult !== 'tesSUCCESS') {
+      throw new Error(`EscrowCancel failed: ${cancelMeta?.TransactionResult}`);
+    }
+
+    return { hash: result.result.hash };
+  }
+
+  async listEscrows(owner: string) {
+    await this.connect();
+    const resp = await this.client.request({
+      command: 'account_objects',
+      account: owner,
+      type: 'escrow',
+      ledger_index: 'validated',
+    });
+
+    const escrows = (resp.result.account_objects || []).map((obj: any) => ({
+      sequence: obj.Sequence,
+      amount: obj.Amount,
+      destination: obj.Destination,
+      finishAfter: obj.FinishAfter,
+      cancelAfter: obj.CancelAfter,
+    }));
+
+    return escrows;
+  }
+
+  /** Convert Unix timestamp to Ripple epoch */
+  static unixToRippleEpoch(unixSec: number): number {
+    return unixSec - RIPPLE_EPOCH_OFFSET;
+  }
 }

@@ -17,6 +17,11 @@ module.exports = {
       },
     },
     extend: {
+      backgroundImage: {
+        'gradient-politifolio': 'var(--gradient-accent)',
+        'gradient-card': 'var(--gradient-card)',
+        'gradient-header': 'var(--gradient-header)',
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",

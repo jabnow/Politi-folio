@@ -4,3 +4,6 @@ dist
 .env
 
 # test 
+*.db
+*.db-shm
+*.db-wal

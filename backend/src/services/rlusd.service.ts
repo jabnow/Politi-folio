@@ -1,5 +1,6 @@
 // backend/src/services/rlusd.service.ts
-import { XrplService } from './xrpl.service';
+import { Wallet } from 'xrpl';
+import { XrplService } from './xrpl.service.js';
 
 const RLUSD_TESTNET_ISSUER = 'rQhWct2fv4Vc4KRjRgMrxa8xPN9Zx9iLKV';
 const RLUSD_CURRENCY = 'RLUSD'; // or '524C555344...' if needed
