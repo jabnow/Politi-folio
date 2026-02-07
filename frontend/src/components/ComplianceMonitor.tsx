@@ -15,16 +15,16 @@ import { Progress } from '@/components/ui/progress';
 //   Globe,
 //   BookOpen
 // } from 'lucide-react';
-const Shield = () => <span>🛡️</span>;
-const FileText = () => <span>📄</span>;
-const CheckCircle = () => <span>✅</span>;
-const XCircle = () => <span>❌</span>;
-const Clock = () => <span>🕒</span>;
-const Download = () => <span>⬇️</span>;
-const Eye = () => <span>👁️</span>;
-const Zap = () => <span>⚡</span>;
-const Globe = () => <span>🌐</span>;
-const BookOpen = () => <span>📖</span>;
+const Shield = ({ className }: { className?: string }) => <span className={className}>🛡️</span>;
+const FileText = ({ className }: { className?: string }) => <span className={className}>📄</span>;
+const CheckCircle = ({ className }: { className?: string }) => <span className={className}>✅</span>;
+const XCircle = ({ className }: { className?: string }) => <span className={className}>❌</span>;
+const Clock = ({ className }: { className?: string }) => <span className={className}>🕒</span>;
+const Download = ({ className }: { className?: string }) => <span className={className}>⬇️</span>;
+const Eye = ({ className }: { className?: string }) => <span className={className}>👁️</span>;
+const Zap = ({ className }: { className?: string }) => <span className={className}>⚡</span>;
+const Globe = ({ className }: { className?: string }) => <span className={className}>🌐</span>;
+const BookOpen = ({ className }: { className?: string }) => <span className={className}>📖</span>;
 import { motion } from 'framer-motion';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 

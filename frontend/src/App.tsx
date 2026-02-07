@@ -21,23 +21,23 @@ import { Badge } from '@/components/ui/badge';
 //   BarChart3
 // } from 'lucide-react';
 // Mock Icons to bypass installation issues
-const Globe = () => <span>🌐</span>;
-const Radio = () => <span>📻</span>;
-const Brain = () => <span>🧠</span>;
-const Activity = () => <span>📈</span>;
-const AlertCircle = () => <span>⚠️</span>;
-const CheckCircle = () => <span>✅</span>;
-const Zap = () => <span>⚡</span>;
-const FileCheck = () => <span>📋</span>;
-const FileText = () => <span>📄</span>;
-const BarChart3 = () => <span>📊</span>;
+const Globe = ({ className }: { className?: string }) => <span className={className}>🌐</span>;
+const Radio = ({ className }: { className?: string }) => <span className={className}>📻</span>;
+const Brain = ({ className }: { className?: string }) => <span className={className}>🧠</span>;
+const Activity = ({ className }: { className?: string }) => <span className={className}>📈</span>;
+const AlertCircle = ({ className }: { className?: string }) => <span className={className}>⚠️</span>;
+const CheckCircle = ({ className }: { className?: string }) => <span className={className}>✅</span>;
+const Zap = ({ className }: { className?: string }) => <span className={className}>⚡</span>;
+const FileCheck = ({ className }: { className?: string }) => <span className={className}>📋</span>;
+const FileText = ({ className }: { className?: string }) => <span className={className}>📄</span>;
+const BarChart3 = ({ className }: { className?: string }) => <span className={className}>📊</span>;
 import './index.css'
 
 export default function App() {
   const [selectedEvent, setSelectedEvent] = useState<number | null>(null);
 
   return (
-    <div className="dark min-h-screen min-h-dvh w-full max-w-[100vw] bg-zinc-950 text-white flex flex-col overflow-x-hidden">
+    <div className="dark h-screen w-screen bg-zinc-950 text-white flex flex-col overflow-hidden">
       <Tabs defaultValue="map" className="flex-1 flex flex-col min-h-0">
         {/* Header */}
         <header className="border-b border-zinc-800 bg-zinc-900/50 backdrop-blur-xl shrink-0">

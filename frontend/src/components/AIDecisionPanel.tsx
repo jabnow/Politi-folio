@@ -3,13 +3,13 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 // import { Brain, CheckCircle, XCircle, AlertTriangle, FileText, Globe, Shield } from 'lucide-react';
-const Brain = () => <span>🧠</span>;
-const CheckCircle = () => <span>✅</span>;
-const XCircle = () => <span>❌</span>;
-const AlertTriangle = () => <span>⚠️</span>;
-const FileText = () => <span>📄</span>;
-const Globe = () => <span>🌐</span>;
-const Shield = () => <span>🛡️</span>;
+const Brain = ({ className }: { className?: string }) => <span className={className}>🧠</span>;
+const CheckCircle = ({ className }: { className?: string }) => <span className={className}>✅</span>;
+const XCircle = ({ className }: { className?: string }) => <span className={className}>❌</span>;
+const AlertTriangle = ({ className }: { className?: string }) => <span className={className}>⚠️</span>;
+const FileText = ({ className }: { className?: string }) => <span className={className}>📄</span>;
+const Globe = ({ className }: { className?: string }) => <span className={className}>🌐</span>;
+const Shield = ({ className }: { className?: string }) => <span className={className}>🛡️</span>;
 import { motion } from 'framer-motion';
 
 interface AIDecision {
