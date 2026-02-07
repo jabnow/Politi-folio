@@ -6,7 +6,7 @@ from database.database import engine, Base
 # Create tables
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="GeoPulse Backend", version="1.0.0")
+app = FastAPI(title="Politifolio Backend", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -22,4 +22,4 @@ app.include_router(users.router, prefix="/api/v1/users", tags=["users"])
 
 @app.get("/")
 def read_root():
-    return {"message": "Welcome to GeoPulse Backend"}
+    return {"message": "Welcome to Politifolio Backend"}

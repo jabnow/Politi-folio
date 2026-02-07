@@ -1,4 +1,4 @@
-# GeoPulse Backend - Project Progress
+# Politifolio Backend - Project Progress
 
 ## 🟢 Current Status: Functional Prototype (Technical Demo Ready)
 
@@ -44,7 +44,7 @@ The backend is fully operational with "Mock Mode" resilience for the XRPL layer 
     *   Needed: Integration with OpenAI GPT-4 or Anthropic Claude for deep semantic understanding of complex legal documents.
 
 4.  **Production Database**
-    *   Current: SQLite (`geopulse.db`).
+    *   Current: SQLite (`politifolio.db`).
     *   Needed: Migration to PostgreSQL (AWS RDS or Supabase) for concurrency.
 
 5.  **User Authentication**

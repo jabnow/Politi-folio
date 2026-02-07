@@ -23,7 +23,7 @@ except ImportError:
     import nltk
 
 def setup_environment():
-    print("--- GeoPulse Backend Setup ---")
+    print("--- Politifolio Backend Setup ---")
     
     # 0. Download NLP Data (Technical Strength: Local NLTK)
     print("Downloading NLTK Corpora for Sentiment Analysis...")
@@ -59,7 +59,7 @@ def setup_environment():
         wallet_seed = wallet.seed
     
     # 2. Create .env file
-    env_content = f"""DATABASE_URL=sqlite:///./geopulse.db
+    env_content = f"""DATABASE_URL=sqlite:///./politifolio.db
 XRPL_NODE_URL=wss://s.altnet.rippletest.net:51233
 GEO_PULSE_ISSUER_SEED={wallet_seed}
 GEO_PULSE_CURRENCY_CODE=GEO

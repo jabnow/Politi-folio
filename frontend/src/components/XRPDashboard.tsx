@@ -100,9 +100,9 @@ export function XRPDashboard() {
   const currentUSDT = priceData[priceData.length - 1].USDT;
 
   return (
-    <div className="h-full flex flex-col gap-4 p-4 bg-zinc-950">
+    <div className="min-h-full flex flex-col gap-4 p-4 bg-zinc-950 overflow-auto">
       {/* Currency Cards */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 shrink-0">
         <Card className="bg-zinc-900 border-zinc-800 p-4">
           <div className="flex items-start justify-between">
             <div>
@@ -147,7 +147,7 @@ export function XRPDashboard() {
       </div>
 
       {/* Price Chart */}
-      <Card className="bg-zinc-900 border-zinc-800 p-4 flex-1">
+      <Card className="bg-zinc-900 border-zinc-800 p-4 flex-1 min-h-[250px]">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h3 className="font-semibold text-white">XRP Ledger Price Feed</h3>
@@ -202,7 +202,7 @@ export function XRPDashboard() {
       </Card>
 
       {/* Transaction Monitor */}
-      <Card className="bg-zinc-900 border-zinc-800 p-4">
+      <Card className="bg-zinc-900 border-zinc-800 p-4 shrink-0">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold text-white">Real-Time XRP Ledger Transactions</h3>
           <Badge variant="outline" className="bg-red-500/10 text-red-500 border-red-500/20">
