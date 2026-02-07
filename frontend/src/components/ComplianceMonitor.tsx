@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -43,17 +43,20 @@ interface ComplianceDocument {
   confidence: number;
 }
 
-const MOCK_DOCUMENTS: ComplianceDocument[] = [
+const getMockDocuments = (): ComplianceDocument[] => {
+  const today = new Date();
+  const fmt = (d: Date) => d.toISOString().slice(0, 10);
+  return [
   {
     id: 'DOC-001',
     title: 'EU Sanctions Package - Russian Energy Sector',
     type: 'sanction',
     source: 'EU Official Journal',
-    publishDate: '2026-02-05',
+    publishDate: fmt(new Date(today.getTime() - 86400000 * 2)),
     processingStatus: 'completed',
     extractedRequirements: 23,
     affectedProducts: ['Energy Trading', 'Cross-border Payments', 'Derivatives'],
-    implementationDeadline: '2026-02-07',
+    implementationDeadline: fmt(new Date(today.getTime() + 86400000 * 2)),
     impact: 'critical',
     jurisdiction: 'EU',
     confidence: 98
@@ -63,11 +66,11 @@ const MOCK_DOCUMENTS: ComplianceDocument[] = [
     title: 'ECB Anti-Money Laundering Guidelines Update',
     type: 'regulation',
     source: 'European Central Bank',
-    publishDate: '2026-02-06',
+    publishDate: fmt(today),
     processingStatus: 'processing',
     extractedRequirements: 47,
     affectedProducts: ['Cross-border Payments', 'Currency Exchange', 'KYC Procedures'],
-    implementationDeadline: '2026-03-01',
+    implementationDeadline: fmt(new Date(today.getTime() + 86400000 * 24)),
     impact: 'high',
     jurisdiction: 'EU',
     confidence: 92
@@ -77,11 +80,11 @@ const MOCK_DOCUMENTS: ComplianceDocument[] = [
     title: 'OFAC Belarus Trade Restrictions Extension',
     type: 'sanction',
     source: 'US Treasury - OFAC',
-    publishDate: '2026-02-06',
+    publishDate: fmt(today),
     processingStatus: 'completed',
     extractedRequirements: 12,
     affectedProducts: ['Trade Finance', 'Foreign Exchange'],
-    implementationDeadline: '2026-02-08',
+    implementationDeadline: fmt(new Date(today.getTime() + 86400000 * 2)),
     impact: 'high',
     jurisdiction: 'USA',
     confidence: 96
@@ -91,11 +94,11 @@ const MOCK_DOCUMENTS: ComplianceDocument[] = [
     title: 'Basel III Capital Requirements Update',
     type: 'regulation',
     source: 'Basel Committee',
-    publishDate: '2026-02-04',
+    publishDate: fmt(new Date(today.getTime() - 86400000 * 3)),
     processingStatus: 'completed',
     extractedRequirements: 156,
     affectedProducts: ['Risk Management', 'Capital Allocation', 'Lending'],
-    implementationDeadline: '2026-06-01',
+    implementationDeadline: fmt(new Date(today.getTime() + 86400000 * 120)),
     impact: 'medium',
     jurisdiction: 'Global',
     confidence: 94
@@ -105,16 +108,17 @@ const MOCK_DOCUMENTS: ComplianceDocument[] = [
     title: 'Singapore MAS Digital Asset Guidelines',
     type: 'guideline',
     source: 'Monetary Authority of Singapore',
-    publishDate: '2026-02-03',
+    publishDate: fmt(new Date(today.getTime() - 86400000 * 4)),
     processingStatus: 'completed',
     extractedRequirements: 34,
     affectedProducts: ['Crypto Trading', 'Digital Assets', 'Custody Services'],
-    implementationDeadline: '2026-03-01',
+    implementationDeadline: fmt(new Date(today.getTime() + 86400000 * 24)),
     impact: 'medium',
     jurisdiction: 'Singapore',
     confidence: 89
   }
 ];
+};
 
 const complianceScoreData = [
   { month: 'Aug', score: 87 },
@@ -134,7 +138,7 @@ const jurisdictionData = [
 ];
 
 export function ComplianceMonitor() {
-  const [documents, setDocuments] = useState(MOCK_DOCUMENTS);
+  const [documents] = useState(() => getMockDocuments());
   const [selectedDoc, setSelectedDoc] = useState<ComplianceDocument | null>(documents[0]);
 
   const getTypeIcon = (type: string) => {
@@ -386,7 +390,7 @@ export function ComplianceMonitor() {
                       fill="#8884d8"
                       dataKey="value"
                     >
-                      {jurisdictionData.map((entry, index) => (
+                      {jurisdictionData.map((entry: { name: string; value: number; color: string }, index: number) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
