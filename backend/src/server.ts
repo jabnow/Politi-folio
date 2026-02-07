@@ -7,7 +7,7 @@ config({ path: join(__dirname, '..', '.env') })
 import express from 'express'
 import cors from 'cors'
 import { getEvents } from './controllers/events.controller.js'
-import { getReconciliation } from './controllers/reconciliation.controller.js'
+import { getReconciliation, postRebalance } from './controllers/reconciliation.controller.js'
 import { getReconciliationTasks } from './controllers/reconciliation-tasks.controller.js'
 import { getDecisions } from './controllers/decisions.controller.js'
 import { runWorkflow } from './controllers/workflow.controller.js'
@@ -27,6 +27,9 @@ app.get('/api/workflow', runWorkflow)
 app.post('/api/workflow', runWorkflow)
 app.get('/api/key-events', listKeyEvents)
 app.get('/api/key-events/:id', getKeyEvent)
+
+app.get('/reconciliation/:walletAddress', getReconciliation);
+app.post('/rebalance', postRebalance);
 
 app.listen(PORT, () => {
   console.log(`Politifolio backend running at http://localhost:${PORT}`)
