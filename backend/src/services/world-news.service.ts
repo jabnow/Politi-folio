@@ -67,3 +67,28 @@ export async function getTopNews(params: {
   const topNews = data.top_news ?? []
   return topNews.flatMap((cluster: { news: NewsArticle[] }) => cluster.news ?? [])
 }
+
+/** Extract full article content from a URL - scrapes and returns structured JSON */
+export async function extractNews(params: { url: string; analyze?: boolean }): Promise<{
+  title?: string
+  text?: string
+  url?: string
+  publish_date?: string
+  authors?: string[]
+  language?: string
+} | null> {
+  const key = getApiKey()
+  const searchParams = new URLSearchParams({
+    'api-key': key,
+    url: params.url,
+    ...(params.analyze && { analyze: 'true' }),
+  })
+  const res = await fetch(`${BASE}/extract-news?${searchParams}`)
+  if (!res.ok) {
+    const err = await res.text()
+    console.warn(`[World News API] extract-news error: ${res.status}`, err.slice(0, 200))
+    return null
+  }
+  const data = (await res.json()) as { title?: string; text?: string; url?: string; publish_date?: string; authors?: string[]; language?: string }
+  return data
+}
