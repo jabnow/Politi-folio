@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -16,94 +16,23 @@ import {
   FileText
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-
-interface ReconciliationTask {
-  id: string;
-  eventType: string;
-  triggeredBy: string;
-  status: 'processing' | 'completed' | 'requires_review' | 'failed';
-  transactionsScanned: number;
-  transactionsFlagged: number;
-  transactionsReconciled: number;
-  startTime: string;
-  completionTime?: string;
-  estimatedSavings: number;
-  assignedTo?: string;
-  priority: 'low' | 'medium' | 'high' | 'critical';
-}
-
-const MOCK_RECONCILIATION_TASKS: ReconciliationTask[] = [
-  {
-    id: 'REC-001',
-    eventType: 'EU Sanctions Update',
-    triggeredBy: 'Automated Policy Monitor',
-    status: 'completed',
-    transactionsScanned: 1247,
-    transactionsFlagged: 125,
-    transactionsReconciled: 125,
-    startTime: '2026-02-06 14:23:00',
-    completionTime: '2026-02-06 14:23:45',
-    estimatedSavings: 3200,
-    assignedTo: 'AI Engine',
-    priority: 'critical'
-  },
-  {
-    id: 'REC-002',
-    eventType: 'Belarus Trade Restrictions',
-    triggeredBy: 'OFAC Alert',
-    status: 'completed',
-    transactionsScanned: 892,
-    transactionsFlagged: 45,
-    transactionsReconciled: 45,
-    startTime: '2026-02-06 14:18:00',
-    completionTime: '2026-02-06 14:18:32',
-    estimatedSavings: 1800,
-    assignedTo: 'AI Engine',
-    priority: 'high'
-  },
-  {
-    id: 'REC-003',
-    eventType: 'ECB AML Guidelines Update',
-    triggeredBy: 'Regulatory Feed',
-    status: 'processing',
-    transactionsScanned: 3421,
-    transactionsFlagged: 234,
-    transactionsReconciled: 156,
-    startTime: '2026-02-06 14:12:00',
-    estimatedSavings: 2400,
-    priority: 'medium'
-  },
-  {
-    id: 'REC-004',
-    eventType: 'Country Risk Update - Brazil',
-    triggeredBy: 'Geopolitical Monitor',
-    status: 'requires_review',
-    transactionsScanned: 567,
-    transactionsFlagged: 156,
-    transactionsReconciled: 142,
-    startTime: '2026-02-06 13:58:00',
-    estimatedSavings: 1200,
-    assignedTo: 'Compliance Team',
-    priority: 'high'
-  },
-  {
-    id: 'REC-005',
-    eventType: 'Routine Daily Reconciliation',
-    triggeredBy: 'Scheduled Task',
-    status: 'completed',
-    transactionsScanned: 8945,
-    transactionsFlagged: 23,
-    transactionsReconciled: 23,
-    startTime: '2026-02-06 09:00:00',
-    completionTime: '2026-02-06 09:02:15',
-    estimatedSavings: 4500,
-    assignedTo: 'AI Engine',
-    priority: 'low'
-  }
-];
+import { fetchReconciliationTasks, type ReconciliationTask } from '@/services/api.service';
 
 export function ReconciliationDashboard() {
-  const [tasks, setTasks] = useState(MOCK_RECONCILIATION_TASKS);
+  const [tasks, setTasks] = useState<ReconciliationTask[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const loadTasks = () => {
+    setLoading(true);
+    fetchReconciliationTasks().then((data) => {
+      setTasks(data);
+      setLoading(false);
+    });
+  };
+
+  useEffect(() => {
+    loadTasks();
+  }, []);
   const [filter, setFilter] = useState<'all' | 'processing' | 'completed' | 'requires_review'>('all');
 
   const getStatusIcon = (status: string) => {
@@ -151,6 +80,14 @@ export function ReconciliationDashboard() {
   const totalSavings = tasks.reduce((sum, t) => sum + t.estimatedSavings, 0);
   const totalReconciled = tasks.reduce((sum, t) => sum + t.transactionsReconciled, 0);
   const avgProcessingTime = 42; // seconds
+
+  if (loading) {
+    return (
+      <div className="min-h-full flex items-center justify-center bg-zinc-950 p-4">
+        <div className="text-zinc-400">Loading reconciliation tasks...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-full flex flex-col gap-4 p-4 bg-zinc-950 overflow-auto">
@@ -236,7 +173,7 @@ export function ReconciliationDashboard() {
             </div>
           </div>
 
-          <Button className="bg-purple-600 hover:bg-purple-700 text-white">
+          <Button className="bg-purple-600 hover:bg-purple-700 text-white" onClick={loadTasks} disabled={loading}>
             <RefreshCw className="w-4 h-4 mr-2" />
             Refresh
           </Button>

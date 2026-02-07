@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -11,100 +11,20 @@ const FileText = () => <span>📄</span>;
 const Globe = () => <span>🌐</span>;
 const Shield = () => <span>🛡️</span>;
 import { motion } from 'framer-motion';
-
-interface AIDecision {
-  id: string;
-  transactionId: string;
-  counterparty: string;
-  country: string;
-  amount: number;
-  riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
-  recommendation: 'APPROVE' | 'REVIEW' | 'REJECT' | 'FREEZE';
-  reasoning: string[];
-  complianceChecks: {
-    sanctionsList: 'CLEAR' | 'FLAGGED';
-    countryRisk: number;
-    transactionPattern: 'NORMAL' | 'SUSPICIOUS';
-    regulatoryStatus: 'COMPLIANT' | 'REVIEW_REQUIRED';
-  };
-  confidence: number;
-  timestamp: string;
-}
-
-const MOCK_DECISIONS: AIDecision[] = [
-  {
-    id: 'DEC001',
-    transactionId: 'TX001',
-    counterparty: 'Gazprom Energy Ltd.',
-    country: 'Russia',
-    amount: 125000,
-    riskLevel: 'CRITICAL',
-    recommendation: 'FREEZE',
-    reasoning: [
-      'Counterparty appears on OFAC sanctions list',
-      'Russia classified as high-risk jurisdiction (Score: 95)',
-      'Recent EU sanctions announced 2026-02-05',
-      'Transaction amount exceeds threshold for sanctioned entities'
-    ],
-    complianceChecks: {
-      sanctionsList: 'FLAGGED',
-      countryRisk: 95,
-      transactionPattern: 'SUSPICIOUS',
-      regulatoryStatus: 'REVIEW_REQUIRED'
-    },
-    confidence: 98,
-    timestamp: '2026-02-06 14:23:15'
-  },
-  {
-    id: 'DEC002',
-    transactionId: 'TX003',
-    counterparty: 'Minsk Trading Co.',
-    country: 'Belarus',
-    amount: 245000,
-    riskLevel: 'HIGH',
-    recommendation: 'REJECT',
-    reasoning: [
-      'Belarus under active trade restrictions',
-      'Counterparty in restricted sector (energy)',
-      'No established business relationship',
-      'Unable to verify beneficial ownership'
-    ],
-    complianceChecks: {
-      sanctionsList: 'FLAGGED',
-      countryRisk: 78,
-      transactionPattern: 'SUSPICIOUS',
-      regulatoryStatus: 'REVIEW_REQUIRED'
-    },
-    confidence: 92,
-    timestamp: '2026-02-06 14:21:33'
-  },
-  {
-    id: 'DEC003',
-    transactionId: 'TX002',
-    counterparty: 'Singapore Tech Corp.',
-    country: 'Singapore',
-    amount: 89500,
-    riskLevel: 'LOW',
-    recommendation: 'APPROVE',
-    reasoning: [
-      'Counterparty verified, established relationship',
-      'Singapore low-risk jurisdiction (Score: 8)',
-      'Transaction pattern matches historical data',
-      'All compliance checks passed'
-    ],
-    complianceChecks: {
-      sanctionsList: 'CLEAR',
-      countryRisk: 8,
-      transactionPattern: 'NORMAL',
-      regulatoryStatus: 'COMPLIANT'
-    },
-    confidence: 96,
-    timestamp: '2026-02-06 14:22:48'
-  }
-];
+import { fetchDecisions, type AIDecision } from '@/services/api.service';
 
 export function AIDecisionPanel() {
-  const [selectedDecision, setSelectedDecision] = useState<AIDecision>(MOCK_DECISIONS[0]);
+  const [decisions, setDecisions] = useState<AIDecision[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedDecision, setSelectedDecision] = useState<AIDecision | null>(null);
+
+  useEffect(() => {
+    fetchDecisions().then((data) => {
+      setDecisions(data);
+      setSelectedDecision(data[0] ?? null);
+      setLoading(false);
+    });
+  }, []);
 
   const getRiskColor = (level: string) => {
     switch (level) {
@@ -136,13 +56,13 @@ export function AIDecisionPanel() {
           </div>
           
           <div className="space-y-2">
-            {MOCK_DECISIONS.map((decision) => (
+            {decisions.map((decision) => (
               <motion.div
                 key={decision.id}
                 whileHover={{ scale: 1.02 }}
                 onClick={() => setSelectedDecision(decision)}
                 className={`p-3 rounded-lg cursor-pointer transition-colors ${
-                  selectedDecision.id === decision.id
+                  selectedDecision?.id === decision.id
                     ? 'bg-zinc-800 border border-zinc-700'
                     : 'bg-zinc-800/50 border border-transparent hover:bg-zinc-800'
                 }`}
@@ -191,6 +111,10 @@ export function AIDecisionPanel() {
 
       {/* Decision Details */}
       <div className="flex-1 flex flex-col gap-4 min-w-0">
+        {loading ? (
+          <div className="flex items-center justify-center p-8 text-zinc-400">Loading decisions...</div>
+        ) : selectedDecision ? (
+        <>
         <Card className="bg-zinc-900 border-zinc-800 p-6">
           <div className="flex items-start justify-between mb-6">
             <div>
@@ -315,14 +239,14 @@ export function AIDecisionPanel() {
         <div className="flex gap-3">
           <Button 
             className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-            disabled={selectedDecision.recommendation !== 'APPROVE'}
+            disabled={selectedDecision?.recommendation !== 'APPROVE'}
           >
             <CheckCircle className="w-4 h-4 mr-2" />
             Approve Transaction
           </Button>
           <Button 
             className="flex-1 bg-red-600 hover:bg-red-700 text-white"
-            disabled={selectedDecision.recommendation === 'APPROVE'}
+            disabled={selectedDecision?.recommendation === 'APPROVE'}
           >
             <XCircle className="w-4 h-4 mr-2" />
             Reject Transaction
@@ -332,6 +256,12 @@ export function AIDecisionPanel() {
             Generate Report
           </Button>
         </div>
+        </>
+        ) : (
+          <Card className="bg-zinc-900 border-zinc-800 p-6">
+            <div className="text-center text-zinc-400 py-8">No decisions to display</div>
+          </Card>
+        )}
       </div>
     </div>
   );
