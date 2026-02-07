@@ -416,7 +416,7 @@ export function ComplianceMonitor() {
                       fill="#8884d8"
                       dataKey="value"
                     >
-                      {jurisdictionData.map((entry, index) => (
+                      {getJurisdictionData(selectedDoc.jurisdiction).map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>

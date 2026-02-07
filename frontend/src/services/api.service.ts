@@ -4,6 +4,18 @@
  */
 const API_BASE = '/api';
 
+/** Test backend connection - returns { ok: true, port } if reachable, { ok: false } otherwise */
+export async function checkBackendHealth(): Promise<{ ok: boolean; port?: number; error?: string }> {
+  try {
+    const res = await fetch(`${API_BASE}/health`);
+    if (!res.ok) return { ok: false, error: `HTTP ${res.status}` };
+    const data = await res.json();
+    return { ok: data.ok === true, port: data.port };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : 'Connection refused' };
+  }
+}
+
 export interface GeopoliticalEvent {
   id: number;
   timestamp: string;
