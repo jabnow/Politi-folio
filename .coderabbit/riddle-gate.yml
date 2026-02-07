@@ -21,7 +21,7 @@ jobs:
           python3 - << 'EOF'
           import json, os, re, random, subprocess, sys
 
-          # 🔧 UPDATED PATHS
+          # Load riddles (your schema)
           with open(".coderabbit/riddles.json") as f:
               riddles = json.load(f)
 
@@ -43,8 +43,8 @@ jobs:
 
           if not match:
               comment(
-                  f"🧩 **Riddle Gate**\n\n"
-                  f"**Riddle:** {riddle['question']}\n\n"
+                  f"🧩 **Riddle Gate** (ID {riddle['id']})\n\n"
+                  f"**Riddle:** {riddle['riddle']}\n\n"
                   "Edit the PR description and add:\n"
                   "`ANSWER: <your guess>`"
               )
@@ -56,5 +56,5 @@ jobs:
               comment("❌ " + random.choice(sarcasm))
               sys.exit(1)
 
-          comment("✅ **Correct.** CodeRabbit silently approves.")
+          comment(f"✅ **Correct.** Riddle #{riddle['id']} defeated.")
           EOF
