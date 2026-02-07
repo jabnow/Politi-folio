@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import { useState, useRef, type HTMLAttributes } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -15,16 +15,18 @@ import { Progress } from '@/components/ui/progress';
 //   Globe,
 //   BookOpen
 // } from 'lucide-react';
-const Shield = () => <span>🛡️</span>;
-const FileText = () => <span>📄</span>;
-const CheckCircle = () => <span>✅</span>;
-const XCircle = () => <span>❌</span>;
-const Clock = () => <span>🕒</span>;
-const Download = () => <span>⬇️</span>;
-const Eye = () => <span>👁️</span>;
-const Zap = () => <span>⚡</span>;
-const Globe = () => <span>🌐</span>;
-const BookOpen = () => <span>📖</span>;
+const icon = (emoji: string) => ({ className, ...props }: HTMLAttributes<HTMLSpanElement>) =>
+  <span className={className} {...props}>{emoji}</span>;
+const Shield = icon('🛡️');
+const FileText = icon('📄');
+const CheckCircle = icon('✅');
+const XCircle = icon('❌');
+const Clock = icon('🕒');
+const Download = icon('⬇️');
+const Eye = icon('👁️');
+const Zap = icon('⚡');
+const Globe = icon('🌐');
+const BookOpen = icon('📖');
 import { motion } from 'framer-motion';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { exportToPdf } from '@/lib/pdfExport';
@@ -148,7 +150,7 @@ const getJurisdictionData = (jurisdiction: string) => {
 };
 
 export function ComplianceMonitor() {
-  const [documents, setDocuments] = useState(MOCK_DOCUMENTS);
+  const [documents] = useState(MOCK_DOCUMENTS);
   const [selectedDoc, setSelectedDoc] = useState<ComplianceDocument | null>(documents[0]);
   const exportRef = useRef<HTMLDivElement>(null);
   const [exporting, setExporting] = useState(false);

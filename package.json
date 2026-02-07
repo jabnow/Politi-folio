@@ -8,7 +8,11 @@
     "concurrently": "^9.1.0"
   },
   "dependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "better-sqlite3": "^12.6.2",
     "cors": "^2.8.6",
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "sql.js": "^1.13.0",
+    "sqlalchemy": "^10.1.1"
   }
 }

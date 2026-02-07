@@ -165,6 +165,61 @@ const MOCK_EVENTS: GeopoliticalEvent[] = [
     affectedTransactions: 67,
     source: 'UK Treasury',
   },
+  {
+    id: 8,
+    timestamp: '2026-02-06 13:22:00',
+    type: 'trade',
+    severity: 'CRITICAL',
+    title: 'US Threatens 100% Tariffs on Taiwan-Made Semiconductors',
+    description: 'Tariff threat raises supply chain fears for TSMC customers. Apple, NVIDIA, AMD, Qualcomm face potential 15%+ chip price increases. 7nm–3nm wafers affected.',
+    country: 'Taiwan',
+    affectedTransactions: 412,
+    source: 'Reuters',
+  },
+  {
+    id: 9,
+    timestamp: '2026-02-06 13:15:00',
+    type: 'regulation',
+    severity: 'HIGH',
+    title: 'China Launches Antitrust Probes on NVIDIA, Google',
+    description: 'Beijing revives antitrust investigations in response to US tariffs. Intel may face similar probe. Cross-border tech transactions require enhanced due diligence.',
+    country: 'China',
+    affectedTransactions: 189,
+    source: 'Ars Technica',
+  },
+  {
+    id: 10,
+    timestamp: '2026-02-06 13:08:00',
+    type: 'policy',
+    severity: 'HIGH',
+    title: 'US CHIPS Act Review Delays Intel, TSMC, Samsung Subsidies',
+    description: 'Administration renegotiating subsidy conditions. Labor and childcare requirements under review. Disbursements to major chipmakers delayed.',
+    country: 'USA',
+    affectedTransactions: 78,
+    source: 'Reuters',
+  },
+  {
+    id: 11,
+    timestamp: '2026-02-06 13:02:00',
+    type: 'trade',
+    severity: 'MEDIUM',
+    title: 'TSMC Signals 15% Semiconductor Price Increase to Pass Tariff Costs',
+    description: 'Advanced wafer pricing could rise from $18K to $20K–23K per unit. New tariff round projected Feb 18. NVIDIA, Apple, AMD among affected customers.',
+    country: 'Taiwan',
+    affectedTransactions: 256,
+    source: 'TechSpot',
+  },
+  {
+    id: 12,
+    timestamp: '2026-02-06 12:55:00',
+    type: 'political',
+    severity: 'MEDIUM',
+    title: 'Taiwan Legacy Chip Sector Faces China Competition',
+    description: 'Chinese foundries Nexchip, SMIC, Hua Hong gaining share in mature-node chips. $56B market at stake. Taiwan firms under pricing pressure.',
+    country: 'Taiwan',
+    affectedTransactions: 134,
+    source: 'Reuters',
+  },
 ];
 
 const MOCK_DECISIONS: AIDecision[] = [
@@ -400,4 +455,20 @@ export async function fetchDecisions(): Promise<AIDecision[]> {
 
 export async function fetchReconciliationTasks(): Promise<ReconciliationTask[]> {
   return fetchWithFallback('/reconciliation-tasks', MOCK_RECONCILIATION_TASKS);
+}
+
+/** Run workflow with real news (NVDA, TSMC, etc.) and rebalance. Triggers refresh. */
+export async function runWorkflow(params?: { q?: string; portfolio?: string[] }): Promise<{ key_event_id?: string; error?: string }> {
+  try {
+    const url = new URL('/api/workflow', window.location.origin);
+    if (params?.q) url.searchParams.set('q', params.q);
+    if (params?.portfolio?.length) url.searchParams.set('portfolio', params.portfolio.join(','));
+    const res = await fetch(url.toString(), { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+    const data = await res.json();
+    if (!res.ok) return { error: data.error ?? `HTTP ${res.status}` };
+    window.dispatchEvent(new CustomEvent('politifolio-refresh'));
+    return { key_event_id: data.key_event_id };
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : 'Request failed' };
+  }
 }

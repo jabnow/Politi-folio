@@ -4,20 +4,23 @@ import { TrendingUp, TrendingDown, Activity, DollarSign, AlertCircle } from 'luc
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 
-// Mock XRP and stablecoin price data
-const generatePriceData = () => {
+// Generate oscillating price data (no live feed - simulated variations every 5s)
+const generateOscillatingPriceData = (phase: number) => {
   const data = [];
   const baseXRP = 0.52;
   const baseUSDC = 1.0;
   const baseUSDT = 0.9999;
-  
+  const amplitudeXRP = 0.02;
+  const amplitudeStable = 0.0008;
+
   for (let i = 0; i < 24; i++) {
+    const t = (i / 24) * 2 * Math.PI + phase;
     data.push({
       time: `${i}:00`,
-      XRP: baseXRP + (Math.random() - 0.5) * 0.02,
-      USDC: baseUSDC + (Math.random() - 0.5) * 0.001,
-      USDT: baseUSDT + (Math.random() - 0.5) * 0.0008,
-      volume: Math.floor(Math.random() * 5000000) + 2000000,
+      XRP: baseXRP + amplitudeXRP * Math.sin(t),
+      USDC: baseUSDC + amplitudeStable * Math.sin(t * 1.2),
+      USDT: baseUSDT + amplitudeStable * Math.sin(t * 0.9),
+      volume: Math.floor(3500000 + 1500000 * Math.sin(t)),
     });
   }
   return data;
@@ -82,12 +85,13 @@ const MOCK_TRANSACTIONS = [
 ];
 
 export function XRPDashboard() {
-  const [priceData, setPriceData] = useState(generatePriceData());
+  const [priceData, setPriceData] = useState(() => generateOscillatingPriceData(0));
   const [selectedCurrency, setSelectedCurrency] = useState<'XRP' | 'USDC' | 'USDT'>('XRP');
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setPriceData(generatePriceData());
+      const phase = Date.now() / 5000;
+      setPriceData(generateOscillatingPriceData(phase));
     }, 5000);
     return () => clearInterval(interval);
   }, []);
@@ -151,7 +155,7 @@ export function XRPDashboard() {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h3 className="font-semibold text-white">XRP Ledger Price Feed</h3>
-            <p className="text-xs text-zinc-400">24-hour benchmark data</p>
+            <p className="text-xs text-zinc-400">Simulated data (oscillates every 5s) — no live feed</p>
           </div>
           <div className="flex gap-2">
             <button 
@@ -175,17 +179,18 @@ export function XRPDashboard() {
           </div>
         </div>
         
-        <ResponsiveContainer width="100%" height="85%">
-          <AreaChart data={priceData}>
-            <defs>
-              <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={selectedCurrency === 'XRP' ? '#3b82f6' : selectedCurrency === 'USDC' ? '#22c55e' : '#eab308'} stopOpacity={0.3}/>
-                <stop offset="95%" stopColor={selectedCurrency === 'XRP' ? '#3b82f6' : selectedCurrency === 'USDC' ? '#22c55e' : '#eab308'} stopOpacity={0}/>
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
-            <XAxis dataKey="time" stroke="#71717a" style={{ fontSize: '12px' }} />
-            <YAxis stroke="#71717a" style={{ fontSize: '12px' }} domain={['dataMin - 0.001', 'dataMax + 0.001']} />
+        <div className="w-full h-[280px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={priceData}>
+              <defs>
+                <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={selectedCurrency === 'XRP' ? '#3b82f6' : selectedCurrency === 'USDC' ? '#22c55e' : '#eab308'} stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor={selectedCurrency === 'XRP' ? '#3b82f6' : selectedCurrency === 'USDC' ? '#22c55e' : '#eab308'} stopOpacity={0}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
+              <XAxis dataKey="time" stroke="#71717a" style={{ fontSize: '12px' }} />
+              <YAxis stroke="#71717a" style={{ fontSize: '12px' }} domain={['dataMin', 'dataMax']} />
             <Tooltip 
               contentStyle={{ backgroundColor: '#18181b', border: '1px solid #3f3f46', borderRadius: '8px' }}
               labelStyle={{ color: '#a1a1aa' }}
@@ -199,6 +204,7 @@ export function XRPDashboard() {
             />
           </AreaChart>
         </ResponsiveContainer>
+        </div>
       </Card>
 
       {/* Transaction Monitor */}

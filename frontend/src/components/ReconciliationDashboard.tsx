@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -33,6 +33,9 @@ export function ReconciliationDashboard() {
 
   useEffect(() => {
     loadTasks();
+    const handler = () => loadTasks();
+    window.addEventListener('politifolio-refresh', handler);
+    return () => window.removeEventListener('politifolio-refresh', handler);
   }, []);
   const [filter, setFilter] = useState<'all' | 'processing' | 'completed' | 'requires_review'>('all');
   const [exportingId, setExportingId] = useState<string | null>(null);

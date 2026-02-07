@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, type HTMLAttributes } from 'react';
+import { runWorkflow } from '@/services/api.service';
 import { PolitifolioMapSimple } from '@/components/PolitifolioMapSimple';
 import { EventFeed } from '@/components/EventFeed';
 import { AIDecisionPanel } from '@/components/AIDecisionPanel';
@@ -20,21 +21,33 @@ import { Badge } from '@/components/ui/badge';
 //   FileText,
 //   BarChart3
 // } from 'lucide-react';
-// Mock Icons to bypass installation issues
-const Globe = () => <span>🌐</span>;
-const Radio = () => <span>📻</span>;
-const Brain = () => <span>🧠</span>;
-const Activity = () => <span>📈</span>;
-const AlertCircle = () => <span>⚠️</span>;
-const CheckCircle = () => <span>✅</span>;
-const Zap = () => <span>⚡</span>;
-const FileCheck = () => <span>📋</span>;
-const FileText = () => <span>📄</span>;
-const BarChart3 = () => <span>📊</span>;
+// Mock Icons to bypass installation issues – accept className and other HTML attrs
+const icon = (emoji: string) => ({ className, ...props }: HTMLAttributes<HTMLSpanElement>) =>
+  <span className={className} {...props}>{emoji}</span>;
+const Globe = icon('🌐');
+const Radio = icon('📻');
+const Brain = icon('🧠');
+const Activity = icon('📈');
+const AlertCircle = icon('⚠️');
+const CheckCircle = icon('✅');
+const Zap = icon('⚡');
+const FileCheck = icon('📋');
+const FileText = icon('📄');
+const BarChart3 = icon('📊');
 import './index.css'
 
 export default function App() {
   const [selectedEvent, setSelectedEvent] = useState<number | null>(null);
+  const [workflowRunning, setWorkflowRunning] = useState(false);
+  const [workflowError, setWorkflowError] = useState<string | null>(null);
+
+  const handleRunWorkflow = async () => {
+    setWorkflowError(null);
+    setWorkflowRunning(true);
+    const result = await runWorkflow({ q: 'semiconductors', portfolio: ['NVDA', 'TSM', 'ASML'] });
+    setWorkflowRunning(false);
+    if (result.error) setWorkflowError(result.error);
+  };
 
   return (
     <div className="dark min-h-screen min-h-dvh w-full max-w-[100vw] bg-zinc-950 text-white flex flex-col overflow-x-hidden">
@@ -43,7 +56,7 @@ export default function App() {
         <header className="border-b border-zinc-800 bg-zinc-900/50 backdrop-blur-xl shrink-0">
           <div className="px-4 sm:px-6 py-3 sm:py-4">
             <div className="flex items-center justify-between gap-4 flex-wrap">
-              {/* Logo & Title */}
+              {/* Logo & Title + Run Workflow */}
               <div className="flex items-center gap-2 sm:gap-4 shrink-0">
                 <div className="flex items-center gap-2 sm:gap-3">
                   <div className="relative">
@@ -59,6 +72,18 @@ export default function App() {
                     <p className="text-xs text-zinc-400 hidden sm:block">Geopolitical Risk Intelligence Platform</p>
                   </div>
                 </div>
+                <button
+                  onClick={handleRunWorkflow}
+                  disabled={workflowRunning}
+                  className="ml-2 sm:ml-4 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm font-medium transition-colors shrink-0"
+                >
+                  {workflowRunning ? 'Running…' : 'Run Workflow'}
+                </button>
+                {workflowError && (
+                  <span className="text-xs text-red-400 truncate max-w-[120px] sm:max-w-none" title={workflowError}>
+                    {workflowError}
+                  </span>
+                )}
               </div>
 
               {/* Real-time Stats - hidden on small screens */}
