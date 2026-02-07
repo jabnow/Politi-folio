@@ -6,6 +6,7 @@ import { XrplService } from '../services/xrpl.service.js';
 import { RlusdService } from '../services/rlusd.service.js';
 import { PolService } from '../services/pol.service.js';
 import { EscrowService } from '../services/escrow.service.js';
+import { PolTokenService } from '../services/polTokenService.js';
 import { getPolRiskSentiment } from '../services/pol-risk-sentiment.service.js';
 
 const xrpl = new XrplService();
@@ -161,6 +162,50 @@ export async function listEscrows(req: Request, res: Response) {
   try {
     const escrows = await escrow.listEscrows(owner);
     json(res, { owner, escrows });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    error(res, msg, 500);
+  }
+}
+
+/** POST /api/xrpl/issue-token - Issue POL tokens to destination wallet */
+export async function issueToken(req: Request, res: Response) {
+  try {
+    const polToken = new PolTokenService();
+    const destinationAddress = process.env.DESTINATION_ADDRESS;
+    
+    if (!destinationAddress) {
+      return error(res, 'DESTINATION_ADDRESS not configured in .env');
+    }
+
+    // Check if destination exists
+    const xrplService = new XrplService();
+    await xrplService.getBalance(destinationAddress);
+
+    // Create trust line if needed, then mint tokens
+    const { Wallet } = await import('xrpl');
+    const destWallet = Wallet.fromSeed(process.env.DESTINATION_SEED || '');
+    
+    // Create trust line
+    await polToken.createTrustLine(destWallet, '1000000000');
+    
+    // Mint 1M POL tokens
+    const result = await polToken.mint(
+      destinationAddress,
+      '1000000',
+      'demo_issue'
+    );
+
+    await polToken.disconnect();
+
+    json(res, {
+      success: result.success,
+      transactionHash: result.txHash,
+      amount: '1000000',
+      currency: polToken.getCurrencyCode(),
+      destination: destinationAddress,
+      issuer: polToken.getIssuer(),
+    });
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     error(res, msg, 500);
