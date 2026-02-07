@@ -13,8 +13,19 @@ import { getReconciliationTasks } from './controllers/reconciliation-tasks.contr
 import { getDecisions } from './controllers/decisions.controller.js'
 import { runWorkflow } from './controllers/workflow.controller.js'
 import { listKeyEvents, getKeyEvent } from './controllers/key-events.controller.js'
+import { initTables, seedFromMocks } from './services/sqlite.service.js'
+import { getEventsMock } from './mocks/events.mock.js'
+import { getReconciliationTasksMock } from './mocks/reconciliation-tasks.mock.js'
 
 const app = express()
+
+// Initialize SQLite tables and seed from mocks if empty
+try {
+  initTables()
+  seedFromMocks(getEventsMock(), getReconciliationTasksMock())
+} catch {
+  /* DB optional - mocks used as fallback */
+}
 const PORT = process.env.PORT ?? 3001
 
 app.use(cors())

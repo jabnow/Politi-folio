@@ -1,24 +1,24 @@
 from .celery_app import celery_app
 from ai.risk_assessment import calculate_risk_score
-from database.database import SessionLocal
-from database.models import RiskScore
+from database.database import db_connection
 
 @celery_app.task
 def update_risk_scores():
-    # Fetch all countries (or a list)
     countries = ["US", "CN", "RU", "IR", "NK", "GB", "FR", "DE", "JP", "IN"]
-    db = SessionLocal()
-    try:
+    with db_connection() as conn:
         for country in countries:
             new_score = calculate_risk_score(country)
-            # Update or create
-            risk_entry = db.query(RiskScore).filter(RiskScore.country_code == country).first()
-            if not risk_entry:
-                risk_entry = RiskScore(country_code=country, score=new_score)
-                db.add(risk_entry)
+            row = conn.execute(
+                "SELECT id FROM risk_scores WHERE country_code = ?", (country,)
+            ).fetchone()
+            if not row:
+                conn.execute(
+                    "INSERT INTO risk_scores (country_code, score) VALUES (?, ?)",
+                    (country, new_score),
+                )
             else:
-                risk_entry.score = new_score
-        db.commit()
-    finally:
-        db.close()
+                conn.execute(
+                    "UPDATE risk_scores SET score = ?, last_updated = CURRENT_TIMESTAMP WHERE id = ?",
+                    (new_score, row["id"]),
+                )
     return "Risk scores updated"

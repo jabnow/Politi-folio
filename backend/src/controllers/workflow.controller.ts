@@ -11,6 +11,7 @@ import { runReasoning } from '../services/agentuity.service.js'
 import { getEstimatesForTickers } from '../services/financial-datasets.service.js'
 import { computeRebalance } from '../services/rebalance.service.js'
 import { storeEvent } from '../services/events.store.js'
+import { storeKeyEvent, initTables } from '../services/sqlite.service.js'
 
 /** Format YYYY-MM-DD HH:MM:SS for World News API */
 function toApiDate(d: Date): string {
@@ -108,15 +109,24 @@ export async function runWorkflow(req: Request, res: Response): Promise<void> {
       step5_rebalance: rebalance,
     }
 
-    // Store as key event
-    const stored = storeEvent({
+    // Store as key event - SQLite first, in-memory fallback
+    const eventPayload = {
       timestamp: new Date().toISOString(),
       news: result.step1_news,
       dedalus: result.step2_dedalus,
       reasoning: result.step3_reasoning,
       estimates: result.step4_estimates,
       rebalance: result.step5_rebalance,
-    })
+    }
+    let stored: { id: string }
+    try {
+      initTables()
+      const id = `wf-${Date.now()}`
+      const dbStored = storeKeyEvent(eventPayload, id)
+      stored = dbStored ?? storeEvent(eventPayload)
+    } catch {
+      stored = storeEvent(eventPayload)
+    }
 
     res.json({
       ...result,
