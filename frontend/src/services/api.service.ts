@@ -1,51 +1,274 @@
 /**
- * Backend API calls (Mocked for frontend-only development)
+ * Backend API client - connects to Express backend via Vite proxy.
+ * Falls back to mock data when API is unavailable.
  */
-// const API_BASE = '/api'
+const API_BASE = '/api';
 
-// Define types locally since we can't import from backend easily
 export interface GeopoliticalEvent {
-  id: string
-  title: string
-  region: string
-  severity: 'low' | 'medium' | 'high' | 'critical'
-  timestamp: string // Changed to string for JSON serialization
+  id: number;
+  timestamp: string;
+  type: 'sanctions' | 'trade' | 'policy' | 'regulation' | 'political' | 'compliance';
+  severity: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
+  title: string;
+  description: string;
+  country: string;
+  affectedTransactions: number;
+  source: string;
 }
 
 export interface Transaction {
-  id: string
-  hash: string
-  sender: string
-  receiver: string
-  amount: string
-  currency: string
-  timestamp: string
-  riskScore: number
+  id: string;
+  hash: string;
+  sender: string;
+  receiver: string;
+  amount: string;
+  currency: string;
+  timestamp: string;
+  riskScore: number;
 }
 
-// Mock Data
+export interface AIDecision {
+  id: string;
+  transactionId: string;
+  counterparty: string;
+  country: string;
+  amount: number;
+  riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  recommendation: 'APPROVE' | 'REVIEW' | 'REJECT' | 'FREEZE';
+  reasoning: string[];
+  complianceChecks: {
+    sanctionsList: 'CLEAR' | 'FLAGGED';
+    countryRisk: number;
+    transactionPattern: 'NORMAL' | 'SUSPICIOUS';
+    regulatoryStatus: 'COMPLIANT' | 'REVIEW_REQUIRED';
+  };
+  confidence: number;
+  timestamp: string;
+}
+
+export interface ReconciliationTask {
+  id: string;
+  eventType: string;
+  triggeredBy: string;
+  status: 'processing' | 'completed' | 'requires_review' | 'failed';
+  transactionsScanned: number;
+  transactionsFlagged: number;
+  transactionsReconciled: number;
+  startTime: string;
+  completionTime?: string;
+  estimatedSavings: number;
+  assignedTo?: string;
+  priority: 'low' | 'medium' | 'high' | 'critical';
+}
+
+async function fetchWithFallback<T>(
+  url: string,
+  fallback: T
+): Promise<T> {
+  try {
+    const res = await fetch(`${API_BASE}${url}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  } catch {
+    return fallback;
+  }
+}
+
+// Mock data fallback when API is unavailable
 const MOCK_EVENTS: GeopoliticalEvent[] = [
   {
-    id: '1',
-    title: 'New Sanctions on Region X',
-    region: 'Eastern Europe',
-    severity: 'high',
-    timestamp: new Date().toISOString(),
+    id: 1,
+    timestamp: '2026-02-06 14:23:00',
+    type: 'sanctions',
+    severity: 'CRITICAL',
+    title: 'New EU Sanctions on Russian Energy Sector',
+    description: 'European Union announces comprehensive sanctions targeting Russian energy companies. All transactions with listed entities must be frozen immediately.',
+    country: 'Russia',
+    affectedTransactions: 125,
+    source: 'EU Official Journal',
   },
   {
-    id: '2',
-    title: 'Trade Agreement Signed',
-    region: 'Asia Pacific',
-    severity: 'low',
-    timestamp: new Date().toISOString(),
+    id: 2,
+    timestamp: '2026-02-06 14:18:00',
+    type: 'trade',
+    severity: 'HIGH',
+    title: 'Belarus Trade Restrictions Extended',
+    description: 'US Treasury extends trade restrictions on Belarus financial sector for additional 6 months. Enhanced due diligence required.',
+    country: 'Belarus',
+    affectedTransactions: 45,
+    source: 'OFAC',
   },
   {
-    id: '3',
-    title: 'Political Unrest Reports',
-    region: 'South America',
-    severity: 'medium',
-    timestamp: new Date().toISOString(),
-  }
+    id: 3,
+    timestamp: '2026-02-06 14:12:00',
+    type: 'regulation',
+    severity: 'MEDIUM',
+    title: 'ECB Updates AML Requirements',
+    description: 'European Central Bank releases updated anti-money laundering guidelines for cross-border transactions exceeding €10,000.',
+    country: 'EU',
+    affectedTransactions: 234,
+    source: 'ECB',
+  },
+  {
+    id: 4,
+    timestamp: '2026-02-06 14:05:00',
+    type: 'policy',
+    severity: 'MEDIUM',
+    title: 'Fed Maintains Interest Rates',
+    description: 'Federal Reserve maintains interest rates at 5.25-5.50%. Statement emphasizes continued focus on inflation management.',
+    country: 'USA',
+    affectedTransactions: 312,
+    source: 'Federal Reserve',
+  },
+  {
+    id: 5,
+    timestamp: '2026-02-06 13:58:00',
+    type: 'political',
+    severity: 'HIGH',
+    title: 'Political Instability in Brazil',
+    description: 'Protests escalate in São Paulo. Increased country risk assessment recommended for Brazilian counterparties.',
+    country: 'Brazil',
+    affectedTransactions: 156,
+    source: 'Reuters',
+  },
+  {
+    id: 6,
+    timestamp: '2026-02-06 13:45:00',
+    type: 'compliance',
+    severity: 'LOW',
+    title: 'Singapore Updates Crypto Regulations',
+    description: 'MAS clarifies compliance requirements for digital asset transactions. New reporting thresholds effective March 1.',
+    country: 'Singapore',
+    affectedTransactions: 23,
+    source: 'MAS',
+  },
+  {
+    id: 7,
+    timestamp: '2026-02-06 13:32:00',
+    type: 'sanctions',
+    severity: 'MEDIUM',
+    title: 'UK Adds Entities to Sanctions List',
+    description: 'UK government adds 12 entities to consolidated sanctions list. Immediate screening of existing relationships required.',
+    country: 'UK',
+    affectedTransactions: 67,
+    source: 'UK Treasury',
+  },
+];
+
+const MOCK_DECISIONS: AIDecision[] = [
+  {
+    id: 'DEC001',
+    transactionId: 'TX001',
+    counterparty: 'Gazprom Energy Ltd.',
+    country: 'Russia',
+    amount: 125000,
+    riskLevel: 'CRITICAL',
+    recommendation: 'FREEZE',
+    reasoning: [
+      'Counterparty appears on OFAC sanctions list',
+      'Russia classified as high-risk jurisdiction (Score: 95)',
+      'Recent EU sanctions announced 2026-02-05',
+      'Transaction amount exceeds threshold for sanctioned entities',
+    ],
+    complianceChecks: {
+      sanctionsList: 'FLAGGED',
+      countryRisk: 95,
+      transactionPattern: 'SUSPICIOUS',
+      regulatoryStatus: 'REVIEW_REQUIRED',
+    },
+    confidence: 98,
+    timestamp: '2026-02-06 14:23:15',
+  },
+  {
+    id: 'DEC002',
+    transactionId: 'TX003',
+    counterparty: 'Minsk Trading Co.',
+    country: 'Belarus',
+    amount: 245000,
+    riskLevel: 'HIGH',
+    recommendation: 'REJECT',
+    reasoning: [
+      'Belarus under active trade restrictions',
+      'Counterparty in restricted sector (energy)',
+      'No established business relationship',
+      'Unable to verify beneficial ownership',
+    ],
+    complianceChecks: {
+      sanctionsList: 'FLAGGED',
+      countryRisk: 78,
+      transactionPattern: 'SUSPICIOUS',
+      regulatoryStatus: 'REVIEW_REQUIRED',
+    },
+    confidence: 92,
+    timestamp: '2026-02-06 14:21:33',
+  },
+  {
+    id: 'DEC003',
+    transactionId: 'TX002',
+    counterparty: 'Singapore Tech Corp.',
+    country: 'Singapore',
+    amount: 89500,
+    riskLevel: 'LOW',
+    recommendation: 'APPROVE',
+    reasoning: [
+      'Counterparty verified, established relationship',
+      'Singapore low-risk jurisdiction (Score: 8)',
+      'Transaction pattern matches historical data',
+      'All compliance checks passed',
+    ],
+    complianceChecks: {
+      sanctionsList: 'CLEAR',
+      countryRisk: 8,
+      transactionPattern: 'NORMAL',
+      regulatoryStatus: 'COMPLIANT',
+    },
+    confidence: 96,
+    timestamp: '2026-02-06 14:22:48',
+  },
+  {
+    id: 'DEC004',
+    transactionId: 'TX004',
+    counterparty: 'Nord Stream Partners AG',
+    country: 'Germany',
+    amount: 320000,
+    riskLevel: 'MEDIUM',
+    recommendation: 'REVIEW',
+    reasoning: [
+      'Partial ownership links to sanctioned entities',
+      'Requires enhanced due diligence',
+      'Transaction pattern within normal range',
+    ],
+    complianceChecks: {
+      sanctionsList: 'CLEAR',
+      countryRisk: 45,
+      transactionPattern: 'NORMAL',
+      regulatoryStatus: 'REVIEW_REQUIRED',
+    },
+    confidence: 85,
+    timestamp: '2026-02-06 14:20:12',
+  },
+  {
+    id: 'DEC005',
+    transactionId: 'TX005',
+    counterparty: 'Emirates Trading Corp.',
+    country: 'UAE',
+    amount: 178000,
+    riskLevel: 'LOW',
+    recommendation: 'APPROVE',
+    reasoning: [
+      'Verified counterparty in low-risk jurisdiction',
+      'Established trading relationship',
+      'All compliance checks passed',
+    ],
+    complianceChecks: {
+      sanctionsList: 'CLEAR',
+      countryRisk: 22,
+      transactionPattern: 'NORMAL',
+      regulatoryStatus: 'COMPLIANT',
+    },
+    confidence: 94,
+    timestamp: '2026-02-06 14:19:44',
+  },
 ];
 
 const MOCK_TRANSACTIONS: Transaction[] = [
@@ -78,42 +301,91 @@ const MOCK_TRANSACTIONS: Transaction[] = [
     currency: 'XRP',
     timestamp: new Date().toISOString(),
     riskScore: 5,
-  }
+  },
 ];
 
-const MOCK_DECISIONS = [
+const MOCK_RECONCILIATION_TASKS: ReconciliationTask[] = [
   {
-    id: '1',
-    type: 'Block',
-    reason: 'High Risk Score',
-    target: 'Transaction #2',
-    timestamp: new Date().toISOString(),
-    status: 'Pending Review'
+    id: 'REC-001',
+    eventType: 'EU Sanctions Update',
+    triggeredBy: 'Automated Policy Monitor',
+    status: 'completed',
+    transactionsScanned: 1247,
+    transactionsFlagged: 125,
+    transactionsReconciled: 125,
+    startTime: '2026-02-06 14:23:00',
+    completionTime: '2026-02-06 14:23:45',
+    estimatedSavings: 3200,
+    assignedTo: 'AI Engine',
+    priority: 'critical',
   },
   {
-    id: '2',
-    type: 'Flag',
-    reason: 'Unusual Volume',
-    target: 'Account rWalletAddress1',
-    timestamp: new Date().toISOString(),
-    status: 'Resolved'
-  }
+    id: 'REC-002',
+    eventType: 'Belarus Trade Restrictions',
+    triggeredBy: 'OFAC Alert',
+    status: 'completed',
+    transactionsScanned: 892,
+    transactionsFlagged: 45,
+    transactionsReconciled: 45,
+    startTime: '2026-02-06 14:18:00',
+    completionTime: '2026-02-06 14:18:32',
+    estimatedSavings: 1800,
+    assignedTo: 'AI Engine',
+    priority: 'high',
+  },
+  {
+    id: 'REC-003',
+    eventType: 'ECB AML Guidelines Update',
+    triggeredBy: 'Regulatory Feed',
+    status: 'processing',
+    transactionsScanned: 3421,
+    transactionsFlagged: 234,
+    transactionsReconciled: 156,
+    startTime: '2026-02-06 14:12:00',
+    estimatedSavings: 2400,
+    priority: 'medium',
+  },
+  {
+    id: 'REC-004',
+    eventType: 'Country Risk Update - Brazil',
+    triggeredBy: 'Geopolitical Monitor',
+    status: 'requires_review',
+    transactionsScanned: 567,
+    transactionsFlagged: 156,
+    transactionsReconciled: 142,
+    startTime: '2026-02-06 13:58:00',
+    estimatedSavings: 1200,
+    assignedTo: 'Compliance Team',
+    priority: 'high',
+  },
+  {
+    id: 'REC-005',
+    eventType: 'Routine Daily Reconciliation',
+    triggeredBy: 'Scheduled Task',
+    status: 'completed',
+    transactionsScanned: 8945,
+    transactionsFlagged: 23,
+    transactionsReconciled: 23,
+    startTime: '2026-02-06 09:00:00',
+    completionTime: '2026-02-06 09:02:15',
+    estimatedSavings: 4500,
+    assignedTo: 'AI Engine',
+    priority: 'low',
+  },
 ];
 
-// Simulate network delay
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
-export async function fetchEvents() {
-  await delay(500);
-  return MOCK_EVENTS;
+export async function fetchEvents(): Promise<GeopoliticalEvent[]> {
+  return fetchWithFallback('/events', MOCK_EVENTS);
 }
 
-export async function fetchTransactions() {
-  await delay(700);
-  return MOCK_TRANSACTIONS;
+export async function fetchTransactions(): Promise<Transaction[]> {
+  return fetchWithFallback('/reconciliation', MOCK_TRANSACTIONS);
 }
 
-export async function fetchDecisions() {
-  await delay(600);
-  return MOCK_DECISIONS;
+export async function fetchDecisions(): Promise<AIDecision[]> {
+  return fetchWithFallback('/decisions', MOCK_DECISIONS);
+}
+
+export async function fetchReconciliationTasks(): Promise<ReconciliationTask[]> {
+  return fetchWithFallback('/reconciliation-tasks', MOCK_RECONCILIATION_TASKS);
 }

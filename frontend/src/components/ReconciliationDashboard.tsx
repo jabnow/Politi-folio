@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -16,95 +16,42 @@ import {
   FileText
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-
-interface ReconciliationTask {
-  id: string;
-  eventType: string;
-  triggeredBy: string;
-  status: 'processing' | 'completed' | 'requires_review' | 'failed';
-  transactionsScanned: number;
-  transactionsFlagged: number;
-  transactionsReconciled: number;
-  startTime: string;
-  completionTime?: string;
-  estimatedSavings: number;
-  assignedTo?: string;
-  priority: 'low' | 'medium' | 'high' | 'critical';
-}
-
-const MOCK_RECONCILIATION_TASKS: ReconciliationTask[] = [
-  {
-    id: 'REC-001',
-    eventType: 'EU Sanctions Update',
-    triggeredBy: 'Automated Policy Monitor',
-    status: 'completed',
-    transactionsScanned: 1247,
-    transactionsFlagged: 125,
-    transactionsReconciled: 125,
-    startTime: '2026-02-06 14:23:00',
-    completionTime: '2026-02-06 14:23:45',
-    estimatedSavings: 3200,
-    assignedTo: 'AI Engine',
-    priority: 'critical'
-  },
-  {
-    id: 'REC-002',
-    eventType: 'Belarus Trade Restrictions',
-    triggeredBy: 'OFAC Alert',
-    status: 'completed',
-    transactionsScanned: 892,
-    transactionsFlagged: 45,
-    transactionsReconciled: 45,
-    startTime: '2026-02-06 14:18:00',
-    completionTime: '2026-02-06 14:18:32',
-    estimatedSavings: 1800,
-    assignedTo: 'AI Engine',
-    priority: 'high'
-  },
-  {
-    id: 'REC-003',
-    eventType: 'ECB AML Guidelines Update',
-    triggeredBy: 'Regulatory Feed',
-    status: 'processing',
-    transactionsScanned: 3421,
-    transactionsFlagged: 234,
-    transactionsReconciled: 156,
-    startTime: '2026-02-06 14:12:00',
-    estimatedSavings: 2400,
-    priority: 'medium'
-  },
-  {
-    id: 'REC-004',
-    eventType: 'Country Risk Update - Brazil',
-    triggeredBy: 'Geopolitical Monitor',
-    status: 'requires_review',
-    transactionsScanned: 567,
-    transactionsFlagged: 156,
-    transactionsReconciled: 142,
-    startTime: '2026-02-06 13:58:00',
-    estimatedSavings: 1200,
-    assignedTo: 'Compliance Team',
-    priority: 'high'
-  },
-  {
-    id: 'REC-005',
-    eventType: 'Routine Daily Reconciliation',
-    triggeredBy: 'Scheduled Task',
-    status: 'completed',
-    transactionsScanned: 8945,
-    transactionsFlagged: 23,
-    transactionsReconciled: 23,
-    startTime: '2026-02-06 09:00:00',
-    completionTime: '2026-02-06 09:02:15',
-    estimatedSavings: 4500,
-    assignedTo: 'AI Engine',
-    priority: 'low'
-  }
-];
+import { fetchReconciliationTasks, type ReconciliationTask } from '@/services/api.service';
+import { exportToPdf } from '@/lib/pdfExport';
 
 export function ReconciliationDashboard() {
-  const [tasks, setTasks] = useState(MOCK_RECONCILIATION_TASKS);
+  const [tasks, setTasks] = useState<ReconciliationTask[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const loadTasks = () => {
+    setLoading(true);
+    fetchReconciliationTasks().then((data) => {
+      setTasks(data);
+      setLoading(false);
+    });
+  };
+
+  useEffect(() => {
+    loadTasks();
+  }, []);
   const [filter, setFilter] = useState<'all' | 'processing' | 'completed' | 'requires_review'>('all');
+  const [exportingId, setExportingId] = useState<string | null>(null);
+  const taskRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  const handleExportTask = async (task: ReconciliationTask) => {
+    setExportingId(task.id);
+    await exportToPdf(taskRefs.current[task.id] ?? null, `Reconciliation Report - ${task.eventType}`, [
+      { label: 'Task ID', value: task.id },
+      { label: 'Event Type', value: task.eventType },
+      { label: 'Triggered By', value: task.triggeredBy },
+      { label: 'Status', value: task.status },
+      { label: 'Transactions Scanned', value: String(task.transactionsScanned) },
+      { label: 'Flagged', value: String(task.transactionsFlagged) },
+      { label: 'Reconciled', value: String(task.transactionsReconciled) },
+      { label: 'Estimated Savings', value: `$${task.estimatedSavings}` },
+    ]);
+    setExportingId(null);
+  };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -151,6 +98,14 @@ export function ReconciliationDashboard() {
   const totalSavings = tasks.reduce((sum, t) => sum + t.estimatedSavings, 0);
   const totalReconciled = tasks.reduce((sum, t) => sum + t.transactionsReconciled, 0);
   const avgProcessingTime = 42; // seconds
+
+  if (loading) {
+    return (
+      <div className="min-h-full flex items-center justify-center bg-zinc-950 p-4">
+        <div className="text-zinc-400">Loading reconciliation tasks...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-full flex flex-col gap-4 p-4 bg-zinc-950 overflow-auto">
@@ -236,7 +191,7 @@ export function ReconciliationDashboard() {
             </div>
           </div>
 
-          <Button className="bg-purple-600 hover:bg-purple-700 text-white">
+          <Button className="bg-purple-600 hover:bg-purple-700 text-white" onClick={loadTasks} disabled={loading}>
             <RefreshCw className="w-4 h-4 mr-2" />
             Refresh
           </Button>
@@ -253,79 +208,79 @@ export function ReconciliationDashboard() {
             transition={{ delay: idx * 0.05 }}
           >
             <Card className="bg-zinc-900 border-zinc-800 p-5 hover:border-zinc-700 transition-colors">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
-                  <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
-                    <h3 className="font-semibold text-white">{task.eventType}</h3>
-                    <Badge variant="outline" className={getPriorityColor(task.priority)}>
-                      {task.priority.toUpperCase()}
-                    </Badge>
-                    <Badge variant="outline" className={getStatusColor(task.status)}>
-                      {getStatusIcon(task.status)}
-                      <span className="ml-1">{task.status.replace('_', ' ').toUpperCase()}</span>
-                    </Badge>
+              <div ref={(el) => { if (el) taskRefs.current[task.id] = el; }}>
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex-1">
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
+                      <h3 className="font-semibold text-white">{task.eventType}</h3>
+                      <Badge variant="outline" className={getPriorityColor(task.priority)}>
+                        {task.priority.toUpperCase()}
+                      </Badge>
+                      <Badge variant="outline" className={getStatusColor(task.status)}>
+                        {getStatusIcon(task.status)}
+                        <span className="ml-1">{task.status.replace('_', ' ').toUpperCase()}</span>
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-4 text-xs text-zinc-400">
+                      <span className="flex items-center gap-1">
+                        <FileText className="w-3 h-3" />
+                        {task.id}
+                      </span>
+                      <span>Triggered by: {task.triggeredBy}</span>
+                      <span>Started: {task.startTime}</span>
+                      {task.completionTime && (
+                        <span className="text-green-500">Completed: {task.completionTime}</span>
+                      )}
+                    </div>
                   </div>
-                  
-                  <div className="flex items-center gap-4 text-xs text-zinc-400">
-                    <span className="flex items-center gap-1">
-                      <FileText className="w-3 h-3" />
-                      {task.id}
-                    </span>
-                    <span>Triggered by: {task.triggeredBy}</span>
-                    <span>Started: {task.startTime}</span>
-                    {task.completionTime && (
-                      <span className="text-green-500">Completed: {task.completionTime}</span>
-                    )}
+                  <div className="text-right">
+                    <div className="text-xs text-zinc-400 mb-1">Estimated Savings</div>
+                    <div className="text-xl font-bold text-green-500">${task.estimatedSavings}</div>
                   </div>
                 </div>
-
-                <div className="text-right">
-                  <div className="text-xs text-zinc-400 mb-1">Estimated Savings</div>
-                  <div className="text-xl font-bold text-green-500">${task.estimatedSavings}</div>
+                <div className="mb-4">
+                  <div className="flex items-center justify-between text-xs text-zinc-400 mb-2">
+                    <span>Reconciliation Progress</span>
+                    <span>{task.transactionsReconciled} / {task.transactionsFlagged} transactions</span>
+                  </div>
+                  <Progress
+                    value={(task.transactionsReconciled / task.transactionsFlagged) * 100}
+                    className="h-2"
+                  />
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
+                  <div className="bg-zinc-800/50 rounded-lg p-3">
+                    <div className="text-xs text-zinc-400 mb-1">Scanned</div>
+                    <div className="text-lg font-bold text-white">{task.transactionsScanned.toLocaleString()}</div>
+                  </div>
+                  <div className="bg-zinc-800/50 rounded-lg p-3">
+                    <div className="text-xs text-zinc-400 mb-1">Flagged</div>
+                    <div className="text-lg font-bold text-orange-500">{task.transactionsFlagged}</div>
+                  </div>
+                  <div className="bg-zinc-800/50 rounded-lg p-3">
+                    <div className="text-xs text-zinc-400 mb-1">Reconciled</div>
+                    <div className="text-lg font-bold text-green-500">{task.transactionsReconciled}</div>
+                  </div>
+                  <div className="bg-zinc-800/50 rounded-lg p-3">
+                    <div className="text-xs text-zinc-400 mb-1">Assigned To</div>
+                    <div className="text-sm font-semibold text-purple-400">{task.assignedTo || 'Unassigned'}</div>
+                  </div>
                 </div>
               </div>
-
-              {/* Progress */}
-              <div className="mb-4">
-                <div className="flex items-center justify-between text-xs text-zinc-400 mb-2">
-                  <span>Reconciliation Progress</span>
-                  <span>{task.transactionsReconciled} / {task.transactionsFlagged} transactions</span>
-                </div>
-                <Progress 
-                  value={(task.transactionsReconciled / task.transactionsFlagged) * 100} 
-                  className="h-2"
-                />
-              </div>
-
-              {/* Stats Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
-                <div className="bg-zinc-800/50 rounded-lg p-3">
-                  <div className="text-xs text-zinc-400 mb-1">Scanned</div>
-                  <div className="text-lg font-bold text-white">{task.transactionsScanned.toLocaleString()}</div>
-                </div>
-                <div className="bg-zinc-800/50 rounded-lg p-3">
-                  <div className="text-xs text-zinc-400 mb-1">Flagged</div>
-                  <div className="text-lg font-bold text-orange-500">{task.transactionsFlagged}</div>
-                </div>
-                <div className="bg-zinc-800/50 rounded-lg p-3">
-                  <div className="text-xs text-zinc-400 mb-1">Reconciled</div>
-                  <div className="text-lg font-bold text-green-500">{task.transactionsReconciled}</div>
-                </div>
-                <div className="bg-zinc-800/50 rounded-lg p-3">
-                  <div className="text-xs text-zinc-400 mb-1">Assigned To</div>
-                  <div className="text-sm font-semibold text-purple-400">{task.assignedTo || 'Unassigned'}</div>
-                </div>
-              </div>
-
-              {/* Actions */}
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" className="flex-1">
                   <FileText className="w-4 h-4 mr-2" />
                   View Details
                 </Button>
-                <Button variant="outline" size="sm" className="flex-1">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => handleExportTask(task)}
+                  disabled={exportingId === task.id}
+                >
                   <Download className="w-4 h-4 mr-2" />
-                  Export Report
+                  {exportingId === task.id ? 'Exporting...' : 'Export Report'}
                 </Button>
                 {task.status === 'requires_review' && (
                   <Button size="sm" className="flex-1 bg-purple-600 hover:bg-purple-700">
@@ -334,8 +289,6 @@ export function ReconciliationDashboard() {
                   </Button>
                 )}
               </div>
-
-              {/* Automation Notice */}
               {task.assignedTo === 'AI Engine' && task.status === 'completed' && (
                 <div className="mt-3 p-2 bg-green-500/5 border border-green-500/20 rounded flex items-center gap-2 text-xs text-green-400">
                   <CheckCircle2 className="w-3 h-3" />

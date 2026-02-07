@@ -1,7 +1,8 @@
-import { useState, type HTMLAttributes } from 'react';
+import { useState, useEffect, type HTMLAttributes } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { motion, AnimatePresence } from 'framer-motion';
+import { fetchEvents, type GeopoliticalEvent } from '@/services/api.service';
 // import { AlertCircle, Globe, TrendingUp, FileText, Zap, Shield, Radio } from 'lucide-react';
 const AlertCircle = ({ className, ...props }: HTMLAttributes<HTMLSpanElement>) => <span className={className} {...props}>⚠️</span>;
 const Globe = ({ className, ...props }: HTMLAttributes<HTMLSpanElement>) => <span className={className} {...props}>🌐</span>;
@@ -11,100 +12,16 @@ const Zap = ({ className, ...props }: HTMLAttributes<HTMLSpanElement>) => <span 
 const Shield = ({ className, ...props }: HTMLAttributes<HTMLSpanElement>) => <span className={className} {...props}>🛡️</span>;
 const Radio = ({ className, ...props }: HTMLAttributes<HTMLSpanElement>) => <span className={className} {...props}>📻</span>;
 
-interface GeopoliticalEvent {
-  id: number;
-  timestamp: string;
-  type: 'sanctions' | 'trade' | 'policy' | 'regulation' | 'political' | 'compliance';
-  severity: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
-  title: string;
-  description: string;
-  country: string;
-  affectedTransactions: number;
-  source: string;
-}
-
-const EVENT_FEED: GeopoliticalEvent[] = [
-  {
-    id: 1,
-    timestamp: '2026-02-06 14:23:00',
-    type: 'sanctions',
-    severity: 'CRITICAL',
-    title: 'New EU Sanctions on Russian Energy Sector',
-    description: 'European Union announces comprehensive sanctions targeting Russian energy companies. All transactions with listed entities must be frozen immediately.',
-    country: 'Russia',
-    affectedTransactions: 125,
-    source: 'EU Official Journal'
-  },
-  {
-    id: 2,
-    timestamp: '2026-02-06 14:18:00',
-    type: 'trade',
-    severity: 'HIGH',
-    title: 'Belarus Trade Restrictions Extended',
-    description: 'US Treasury extends trade restrictions on Belarus financial sector for additional 6 months. Enhanced due diligence required.',
-    country: 'Belarus',
-    affectedTransactions: 45,
-    source: 'OFAC'
-  },
-  {
-    id: 3,
-    timestamp: '2026-02-06 14:12:00',
-    type: 'regulation',
-    severity: 'MEDIUM',
-    title: 'ECB Updates AML Requirements',
-    description: 'European Central Bank releases updated anti-money laundering guidelines for cross-border transactions exceeding €10,000.',
-    country: 'EU',
-    affectedTransactions: 234,
-    source: 'ECB'
-  },
-  {
-    id: 4,
-    timestamp: '2026-02-06 14:05:00',
-    type: 'policy',
-    severity: 'MEDIUM',
-    title: 'Fed Maintains Interest Rates',
-    description: 'Federal Reserve maintains interest rates at 5.25-5.50%. Statement emphasizes continued focus on inflation management.',
-    country: 'USA',
-    affectedTransactions: 312,
-    source: 'Federal Reserve'
-  },
-  {
-    id: 5,
-    timestamp: '2026-02-06 13:58:00',
-    type: 'political',
-    severity: 'HIGH',
-    title: 'Political Instability in Brazil',
-    description: 'Protests escalate in São Paulo. Increased country risk assessment recommended for Brazilian counterparties.',
-    country: 'Brazil',
-    affectedTransactions: 156,
-    source: 'Reuters'
-  },
-  {
-    id: 6,
-    timestamp: '2026-02-06 13:45:00',
-    type: 'compliance',
-    severity: 'LOW',
-    title: 'Singapore Updates Crypto Regulations',
-    description: 'MAS clarifies compliance requirements for digital asset transactions. New reporting thresholds effective March 1.',
-    country: 'Singapore',
-    affectedTransactions: 23,
-    source: 'MAS'
-  },
-  {
-    id: 7,
-    timestamp: '2026-02-06 13:32:00',
-    type: 'sanctions',
-    severity: 'MEDIUM',
-    title: 'UK Adds Entities to Sanctions List',
-    description: 'UK government adds 12 entities to consolidated sanctions list. Immediate screening of existing relationships required.',
-    country: 'UK',
-    affectedTransactions: 67,
-    source: 'UK Treasury'
-  }
-];
-
 export function EventFeed() {
-  const [events] = useState(EVENT_FEED);
+  const [events, setEvents] = useState<GeopoliticalEvent[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchEvents().then((data) => {
+      setEvents(data);
+      setLoading(false);
+    });
+  }, []);
   const [filter, setFilter] = useState<'all' | 'CRITICAL' | 'HIGH'>('all');
 
   const getTypeIcon = (type: string) => {
@@ -132,6 +49,14 @@ export function EventFeed() {
   const filteredEvents = filter === 'all' 
     ? events 
     : events.filter(e => e.severity === filter);
+
+  if (loading) {
+    return (
+      <div className="min-h-full flex items-center justify-center bg-zinc-950 p-4">
+        <div className="text-zinc-400">Loading events...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-full flex flex-col bg-zinc-950 p-4 overflow-auto">
