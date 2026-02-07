@@ -1,0 +1,276 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────────────────────
+// User Accounts & Reputation
+// ─────────────────────────────────────────────────────────────
+
+model User {
+  id                 String   @id @default(uuid())
+  walletAddress      String   @unique
+  reputation         Int      @default(0)
+  polBalance         Float    @default(0)
+  verifiedAnalyst    Boolean  @default(false)
+  trustScore         Float    @default(0.5) // 0-1
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  // Relations
+  reports            IntelligenceReport[]
+  stakes             Stake[]
+  votes              Vote[]
+  escrows            EscrowRecord[]
+
+  @@index([walletAddress])
+  @@index([reputation])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Intelligence Reports & Risk Assessment
+// ─────────────────────────────────────────────────────────────
+
+model IntelligenceReport {
+  id                 String   @id @default(uuid())
+  title              String
+  description        String
+  eventDate          DateTime
+  countries          String   // JSON array: ["US", "China", "Russia"]
+  impactScore        Float    @default(0) // 0-10
+  impactType         String   @default("unknown") // political, economic, military, etc.
+  riskLevel          String   @default("unknown") // low, medium, high, critical
+  source             String   @default("analyst") // analyst, news, api, etc.
+  status             String   @default("pending") // pending, verified, disputed, archived
+  
+  // Staking & Verification
+  stakedPol          Float    @default(0)
+  stakeCount         Int      @default(0)
+  verificationCount  Int      @default(0)
+  disputeCount       Int      @default(0)
+  
+  // XRPL Integration
+  txHash             String?  // XRPL tx hash for stake submission
+  escrowId           String?  // XRPL escrow ID if conditional
+  
+  // Metadata
+  tags               String   @default("") // JSON array: ["geopolitics", "sanctions"]
+  confidence         Float    @default(0.5) // 0-1
+  expiresAt          DateTime?
+  
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  createdBy          String
+
+  // Relations
+  user               User     @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  riskAssessment     RiskAssessment?
+  stakes             Stake[]
+  votes              Vote[]
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([countries])
+}
+
+model RiskAssessment {
+  id                 String   @id @default(uuid())
+  reportId           String   @unique
+  
+  // Scoring
+  geopoliticalScore  Float    @default(0) // 0-100
+  economicImpact     Float    @default(0) // 0-100
+  militaryRisk       Float    @default(0) // 0-100
+  sanctionsHit       Boolean  @default(false)
+  sanctionsList      String   @default("") // JSON: names, entities
+  
+  // AI Analysis
+  aiAnalysis         String   @default("") // LLM assessment
+  confidenceLevel    Float    @default(0.5) // 0-1
+  dataQuality        String   @default("unknown") // excellent, good, fair, poor
+  
+  // XRPL Compliance
+  polEscrowId        String?  // XRPL escrow for conditional release
+  clawbackApplied    Boolean  @default(false)
+  
+  // Timestamps
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  analyzedAt         DateTime?
+  finalizedAt        DateTime?
+
+  // Relations
+  report             IntelligenceReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  txHash             String?  // XRPL transaction hash
+
+  @@index([reportId])
+  @@index([geopoliticalScore])
+}
+
+// ─────────────────────────────────────────────────────────────
+// POL Token Economics & Staking
+// ─────────────────────────────────────────────────────────────
+
+model Stake {
+  id                 String   @id @default(uuid())
+  userId             String
+  reportId           String
+  amount             Float    // POL staked
+  direction          String   @default("support") // support or challenge
+  
+  // Voting Power
+  votingPower        Float    @default(0) // amount * user.reputation
+  
+  // Status
+  status             String   @default("active") // active, released, clawedback
+  
+  // XRPL Integration
+  txHash             String?  // XRPL Payment tx hash
+  escrowId           String?  // If in escrow
+  
+  createdAt          DateTime @default(now())
+  releasedAt         DateTime?
+  clawbackAt         DateTime?
+
+  // Relations
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  report             IntelligenceReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, reportId])
+  @@index([userId])
+  @@index([reportId])
+  @@index([status])
+}
+
+model Vote {
+  id                 String   @id @default(uuid())
+  userId             String
+  reportId           String
+  vote               String   @default("abstain") // support, challenge, abstain
+  weight             Float    @default(1) // weighted by reputation
+  
+  txHash             String?  // XRPL tx recording vote
+  
+  createdAt          DateTime @default(now())
+
+  // Relations
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  report             IntelligenceReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, reportId])
+  @@index([userId])
+  @@index([reportId])
+}
+
+model PolTransaction {
+  id                 String   @id @default(uuid())
+  
+  // Transaction Details
+  type               String   // mint, transfer, distribute, clawback, burn
+  amount             Float
+  
+  // Accounts
+  fromWallet         String
+  toWallet           String
+  
+  // XRPL Integration
+  txHash             String   @unique
+  escrowId           String?
+  
+  // Context
+  reason             String   @default("") // "stake", "reward", "compliance", etc.
+  reportId           String?  // linked report if applicable
+  
+  createdAt          DateTime @default(now())
+
+  // Relations (one way - no foreign key for performance)
+  @@index([fromWallet])
+  @@index([toWallet])
+  @@index([type])
+  @@index([txHash])
+}
+
+// ─────────────────────────────────────────────────────────────
+// XRPL Escrow & Payments
+// ─────────────────────────────────────────────────────────────
+
+model EscrowRecord {
+  id                 String   @id @default(uuid())
+  
+  // Escrow Details
+  escrowId           String   @unique
+  ownerAddress       String
+  destinationAddress String
+  condition          String   @default("") // JSON: risk < 5, etc.
+  
+  // Amounts & Currency
+  amount             String   // drops or token amount
+  currency           String   @default("POL")
+  issuer             String?
+  
+  // Timeline
+  createdAt          DateTime @default(now())
+  finishAfter        DateTime?
+  releasedAt         DateTime?
+  cancelledAt        DateTime?
+  
+  // Status
+  status             String   @default("active") // active, finished, cancelled
+  
+  // Context
+  linkedReportId     String?
+  userId             String
+
+  // Relations
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([escrowId])
+  @@index([status])
+  @@index([userId])
+}
+
+// ─────────────────────────────────────────────────────────────
+// API & Access Control
+// ─────────────────────────────────────────────────────────────
+
+model ApiKey {
+  id                 String   @id @default(uuid())
+  key                String   @unique
+  userId             String
+  name               String
+  rateLimit          Int      @default(100) // requests per minute
+  
+  isActive           Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  expiresAt          DateTime?
+  lastUsedAt         DateTime?
+
+  @@index([userId])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Audit Trail
+// ─────────────────────────────────────────────────────────────
+
+model AuditLog {
+  id                 String   @id @default(uuid())
+  action             String   // create_report, stake_pol, clawback, etc.
+  userId             String?
+  resourceType       String   // IntelligenceReport, PolTransaction, etc.
+  resourceId         String
+  details            String   // JSON object
+  ipAddress          String?
+  
+  createdAt          DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+}

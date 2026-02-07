@@ -42,3 +42,28 @@ export interface CountryRisk {
   };
 }
 
+export interface IntelligenceReport {
+  id: string;
+  title: string;
+  description: string;
+  eventDate: string;
+  countries: string[];
+  impactType: string;
+  status: 'pending' | 'verified' | 'disputed';
+  stakedPol: number;
+  creator?: {
+    walletAddress: string;
+    reputation: number;
+    verifiedAnalyst: boolean;
+  };
+  riskAssessment?: {
+    geopoliticalScore: number;
+    economicImpact: number;
+    militaryRisk: number;
+    sanctionsHit: boolean;
+    confidenceLevel: number;
+  };
+  createdAt: string;
+  analyzedAt?: string;
+}
+

@@ -8,10 +8,46 @@ const RIPPLE_EPOCH_OFFSET = 946684800;
 
 export class XrplService {
   private client: Client;
+  private issuerWallet?: Wallet;
+  private destinationWallet?: Wallet;
 
   constructor() {
     const url = process.env.XRPL_NODE_URL || 'wss://s.altnet.rippletest.net:51233'; // testnet default
     this.client = new Client(url);
+    
+    // Load wallets from .env if available
+    if (process.env.GEO_PULSE_ISSUER_SEED) {
+      this.issuerWallet = Wallet.fromSeed(process.env.GEO_PULSE_ISSUER_SEED);
+    }
+    if (process.env.DESTINATION_SEED) {
+      this.destinationWallet = Wallet.fromSeed(process.env.DESTINATION_SEED);
+    }
+  }
+
+  // Get issuer wallet address from env
+  getIssuerAddress(): string {
+    return process.env.GEO_PULSE_ISSUER_ADDRESS || this.issuerWallet?.address || '';
+  }
+
+  // Get issuer wallet instance
+  getIssuerWallet(): Wallet {
+    if (!this.issuerWallet) {
+      throw new Error('Issuer wallet not configured. Set GEO_PULSE_ISSUER_SEED in .env');
+    }
+    return this.issuerWallet;
+  }
+
+  // Get destination wallet instance
+  getDestinationWallet(): Wallet {
+    if (!this.destinationWallet) {
+      throw new Error('Destination wallet not configured. Set DESTINATION_SEED in .env');
+    }
+    return this.destinationWallet;
+  }
+
+  // Get XRPL client
+  getClient(): Client {
+    return this.client;
   }
 
   async connect() {
@@ -266,5 +302,116 @@ export class XrplService {
   /** Convert Unix timestamp to Ripple epoch */
   static unixToRippleEpoch(unixSec: number): number {
     return unixSec - RIPPLE_EPOCH_OFFSET;
+  }
+
+  // ── Trust Line Management ────────────────────────────────────────────
+  /**
+   * Check if an account has a trustline to the issuer for a given currency
+   */
+  async hasTrustLine(account: string, currency: string = 'POL', issuer?: string): Promise<boolean> {
+    await this.connect();
+    const issuerAddr = issuer || this.getIssuerAddress();
+    
+    try {
+      const resp = await this.client.request({
+        command: 'account_lines',
+        account,
+        ledger_index: 'validated',
+      });
+      
+      return resp.result.lines.some(
+        (line: any) => line.currency === currency && line.account === issuerAddr
+      );
+    } catch (err: any) {
+      if (err.data?.error === 'actNotFound') return false;
+      throw err;
+    }
+  }
+
+  /**
+   * Create a TrustSet transaction to establish trustline
+   */
+  async createTrustLine(
+    wallet: Wallet,
+    currency: string = 'POL',
+    issuer?: string,
+    limit: string = '1000000000'
+  ) {
+    await this.connect();
+    const issuerAddr = issuer || this.getIssuerAddress();
+    
+    const txJson = {
+      TransactionType: 'TrustSet' as const,
+      Account: wallet.address,
+      LimitAmount: {
+        currency,
+        issuer: issuerAddr,
+        value: limit,
+      },
+      Flags: 0,
+    };
+
+    const prepared = await this.client.autofill(txJson);
+    const signed = wallet.sign(prepared);
+    const result = await this.client.submitAndWait(signed.tx_blob);
+
+    const meta = result.result.meta as { TransactionResult?: string } | undefined;
+    if (meta?.TransactionResult !== 'tesSUCCESS') {
+      throw new Error(`TrustSet failed: ${meta?.TransactionResult}`);
+    }
+
+    return { hash: result.result.hash, result: meta?.TransactionResult };
+  }
+
+  /**
+   * Get account info (balance, sequence, etc.)
+   */
+  async getAccountInfo(address: string) {
+    await this.connect();
+    try {
+      const resp = await this.client.request({
+        command: 'account_info',
+        account: address,
+        ledger_index: 'validated',
+      });
+      
+      return {
+        address,
+        balance: dropsToXrp(
+          typeof resp.result.account_data.Balance === 'number'
+            ? String(resp.result.account_data.Balance)
+            : resp.result.account_data.Balance
+        ),
+        sequence: resp.result.account_data.Sequence,
+        flags: resp.result.account_data.Flags,
+        ownerCount: resp.result.account_data.OwnerCount,
+        previousTxnID: resp.result.account_data.PreviousTxnID,
+        previousTxnLgrSeq: resp.result.account_data.PreviousTxnLgrSeq,
+      };
+    } catch (err: any) {
+      if (err.data?.error === 'actNotFound') {
+        throw new Error(`Account ${address} not found on ledger`);
+      }
+      throw err;
+    }
+  }
+
+  /**
+   * Get all trustlines for an account
+   */
+  async getTrustLines(account: string, currency?: string) {
+    await this.connect();
+    const resp = await this.client.request({
+      command: 'account_lines',
+      account,
+      ledger_index: 'validated',
+    });
+
+    let lines = resp.result.lines || [];
+    if (currency) {
+      lines = lines.filter((line: any) => line.currency === currency);
+    }
+    
+    return lines;
   }
 }

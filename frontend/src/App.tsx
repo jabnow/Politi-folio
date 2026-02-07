@@ -9,6 +9,9 @@ import { XRPDashboard } from '@/components/XRPDashboard';
 import { ReconciliationDashboard } from '@/components/ReconciliationDashboard';
 import { ComplianceMonitor } from '@/components/ComplianceMonitor';
 import { RiskAnalyticsDashboard } from '@/components/RiskAnalyticsDashboard';
+import { XRPExplainerPanel } from '@/components/XRPExplainerPanel';
+import { WalletExplorer } from '@/components/WalletExplorer';
+import { TransactionQRCode } from '@/components/TransactionQRCode';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -22,6 +25,8 @@ import {
   FileCheck,
   FileText,
   BarChart3,
+  Wallet,
+  QrCode,
 } from 'lucide-react';
 import './index.css'
 
@@ -208,6 +213,27 @@ export default function App() {
                 <BarChart3 className="w-4 h-4 mr-2" />
                 Risk Analytics
               </TabsTrigger>
+              <TabsTrigger
+                value="xrp-explainer"
+                className="rounded-none border-b-2 border-transparent data-[state=active]:border-violet-500 data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 sm:px-6 py-3 data-[state=active]:text-white shrink-0 text-zinc-400 hover:text-zinc-200 transition-colors"
+              >
+                <Zap className="w-4 h-4 mr-2" />
+                How XRP Works
+              </TabsTrigger>
+              <TabsTrigger
+                value="wallets"
+                className="rounded-none border-b-2 border-transparent data-[state=active]:border-violet-500 data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 sm:px-6 py-3 data-[state=active]:text-white shrink-0 text-zinc-400 hover:text-zinc-200 transition-colors"
+              >
+                <Wallet className="w-4 h-4 mr-2" />
+                POL Wallets
+              </TabsTrigger>
+              <TabsTrigger
+                value="qr-demo"
+                className="rounded-none border-b-2 border-transparent data-[state=active]:border-violet-500 data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 sm:px-6 py-3 data-[state=active]:text-white shrink-0 text-zinc-400 hover:text-zinc-200 transition-colors"
+              >
+                <QrCode className="w-4 h-4 mr-2" />
+                Transaction QR
+              </TabsTrigger>
             </TabsList>
           </div>
         </header>
@@ -235,6 +261,30 @@ export default function App() {
               {activeTab === 'reconciliation' && <ReconciliationDashboard />}
               {activeTab === 'compliance' && <ComplianceMonitor />}
               {activeTab === 'analytics' && <RiskAnalyticsDashboard />}
+              {activeTab === 'xrp-explainer' && (
+                <div className="p-4 sm:p-6 flex-1 overflow-auto">
+                  <XRPExplainerPanel />
+                </div>
+              )}
+              {activeTab === 'wallets' && (
+                <div className="p-4 sm:p-6 flex-1 overflow-auto">
+                  <WalletExplorer />
+                </div>
+              )}
+              {activeTab === 'qr-demo' && (
+                <div className="p-4 sm:p-6 flex-1 overflow-auto space-y-6">
+                  <div>
+                    <h2 className="text-2xl font-bold text-white mb-2">POL Transaction QR Code Generator</h2>
+                    <p className="text-slate-300 mb-6">
+                      Use your issueToken.js script to create real transactions on XRPL Testnet, then paste the transaction hash below to generate a scannable QR code that judges can verify.
+                    </p>
+                  </div>
+                  <TransactionQRCode
+                    txHash=""
+                    status="success"
+                  />
+                </div>
+              )}
             </motion.div>
           </AnimatePresence>
         </div>

@@ -25,7 +25,15 @@ import {
   finishEscrow,
   cancelEscrow,
   listEscrows,
+  issueToken,
 } from './controllers/xrpl.controller.js'
+import {
+  submitReport,
+  listReports,
+  getReport,
+  voteOnReport,
+  claimRewards,
+} from './controllers/intelligence.controller.js'
 import { initTables, seedFromMocks } from './services/sqlite.service.js'
 import { getEventsMock } from './mocks/events.mock.js'
 import { getReconciliationTasksMock } from './mocks/reconciliation-tasks.mock.js'
@@ -65,17 +73,27 @@ app.post('/api/xrpl/escrow/create', createEscrow)
 app.post('/api/xrpl/escrow/finish', finishEscrow)
 app.post('/api/xrpl/escrow/cancel', cancelEscrow)
 app.get('/api/xrpl/escrow/list', listEscrows)
+app.post('/api/xrpl/issue-token', issueToken)
+
+// Intelligence Report API - Phase 2
+app.post('/api/reports/submit', submitReport)
+app.get('/api/reports', listReports)
+app.get('/api/reports/:id', getReport)
+app.post('/api/reports/:id/vote', voteOnReport)
+app.post('/api/reports/:id/rewards/claim', claimRewards)
 
 /** Health check for connection testing */
 app.get('/api/health', (_req, res) => {
   res.json({ ok: true, port: PORT, timestamp: new Date().toISOString() })
 })
 
-// #region agent log
-const logPath = 'c:\\Users\\wangj\\projects\\Politi-folio\\.cursor\\debug.log';
+// #region agent log (optional logging)
+const logPath = process.env.DEBUG_LOG_PATH || '.cursor/debug.log';
 const log = (msg: string, data: object) => {
   try {
-    fs.appendFileSync(logPath, JSON.stringify({ location: 'server.ts:listen', message: msg, data, timestamp: Date.now(), hypothesisId: 'C' }) + '\n');
+    if (process.env.DEBUG_LOG_ENABLED === 'true') {
+      fs.appendFileSync(logPath, JSON.stringify({ location: 'server.ts:listen', message: msg, data, timestamp: Date.now() }) + '\n');
+    }
   } catch (_) {}
 };
 // #endregion
