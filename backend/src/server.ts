@@ -8,7 +8,7 @@ config({ path: join(__dirname, '..', '.env') })
 import express from 'express'
 import cors from 'cors'
 import { getEvents } from './controllers/events.controller.js'
-import { getReconciliation } from './controllers/reconciliation.controller.js'
+import { getReconciliation, postRebalance } from './controllers/reconciliation.controller.js'
 import { getReconciliationTasks } from './controllers/reconciliation-tasks.controller.js'
 import { getDecisions } from './controllers/decisions.controller.js'
 import { runWorkflow } from './controllers/workflow.controller.js'
