@@ -10,6 +10,7 @@ import cors from 'cors'
 import { getEvents } from './controllers/events.controller.js'
 import { getReconciliation, postRebalance } from './controllers/reconciliation.controller.js'
 import { getReconciliationTasks } from './controllers/reconciliation-tasks.controller.js'
+import { getNewsSummary } from './controllers/news-summary.controller.js'
 import { getDecisions } from './controllers/decisions.controller.js'
 import { runWorkflow } from './controllers/workflow.controller.js'
 import { listKeyEvents, getKeyEvent } from './controllers/key-events.controller.js'
@@ -46,6 +47,7 @@ app.use(express.json())
 app.get('/api/events', getEvents)
 app.get('/api/reconciliation', getReconciliation)
 app.get('/api/reconciliation-tasks', getReconciliationTasks)
+app.get('/api/news-summary', getNewsSummary)
 app.get('/api/decisions', getDecisions)
 app.get('/api/workflow', runWorkflow)
 app.post('/api/workflow', runWorkflow)
