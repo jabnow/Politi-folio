@@ -16,15 +16,30 @@ import { fetchDecisions, type AIDecision } from '@/services/api.service';
 export function AIDecisionPanel() {
   const [decisions, setDecisions] = useState<AIDecision[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedDecision, setSelectedDecision] = useState<AIDecision | null>(null);
+  const [cardIndex, setCardIndex] = useState(0);
+  const [counters, setCounters] = useState({ reviewed: 247, approved: 189, flagged: 58 });
+
+  const selectedDecision = decisions[cardIndex] ?? null;
 
   useEffect(() => {
     fetchDecisions().then((data) => {
       setDecisions(data);
-      setSelectedDecision(data[0] ?? null);
       setLoading(false);
     });
   }, []);
+
+  const goPrev = () => setCardIndex((i) => Math.max(0, i - 1));
+  const goNext = () => setCardIndex((i) => Math.min(decisions.length - 1, i + 1));
+
+  const handleApprove = () => {
+    setCounters((c) => ({ ...c, reviewed: c.reviewed + 1, approved: c.approved + 1 }));
+    if (cardIndex < decisions.length - 1) setCardIndex((i) => i + 1);
+  };
+
+  const handleReject = () => {
+    setCounters((c) => ({ ...c, reviewed: c.reviewed + 1, flagged: c.flagged + 1 }));
+    if (cardIndex < decisions.length - 1) setCardIndex((i) => i + 1);
+  };
 
   const getRiskColor = (level: string) => {
     switch (level) {
@@ -56,13 +71,13 @@ export function AIDecisionPanel() {
           </div>
           
           <div className="space-y-2">
-            {decisions.map((decision) => (
+            {decisions.map((decision, idx) => (
               <motion.div
                 key={decision.id}
                 whileHover={{ scale: 1.02 }}
-                onClick={() => setSelectedDecision(decision)}
+                onClick={() => setCardIndex(idx)}
                 className={`p-3 rounded-lg cursor-pointer transition-colors ${
-                  selectedDecision?.id === decision.id
+                  cardIndex === idx
                     ? 'bg-zinc-800 border border-zinc-700'
                     : 'bg-zinc-800/50 border border-transparent hover:bg-zinc-800'
                 }`}
@@ -83,23 +98,40 @@ export function AIDecisionPanel() {
               </motion.div>
             ))}
           </div>
+          <div className="flex items-center justify-between mt-2 text-xs text-zinc-500">
+            <button
+              onClick={goPrev}
+              disabled={cardIndex === 0}
+              className="px-2 py-1 rounded hover:bg-zinc-800 disabled:opacity-40"
+            >
+              ← Prev
+            </button>
+            <span>Card {cardIndex + 1} / {decisions.length}</span>
+            <button
+              onClick={goNext}
+              disabled={cardIndex >= decisions.length - 1}
+              className="px-2 py-1 rounded hover:bg-zinc-800 disabled:opacity-40"
+            >
+              Next →
+            </button>
+          </div>
         </Card>
 
-        {/* Quick Stats */}
+        {/* Quick Stats - live counters */}
         <Card className="bg-zinc-900 border-zinc-800 p-4">
           <div className="text-xs text-zinc-400 mb-3">Today's Analysis</div>
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-sm text-zinc-300">Reviewed</span>
-              <span className="text-lg font-bold text-white">247</span>
+              <span className="text-lg font-bold text-white">{counters.reviewed}</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm text-zinc-300">Approved</span>
-              <span className="text-lg font-bold text-green-500">189</span>
+              <span className="text-lg font-bold text-green-500">{counters.approved}</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm text-zinc-300">Flagged</span>
-              <span className="text-lg font-bold text-red-500">58</span>
+              <span className="text-lg font-bold text-red-500">{counters.flagged}</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm text-zinc-300">Avg Confidence</span>
@@ -235,18 +267,18 @@ export function AIDecisionPanel() {
           </div>
         </Card>
 
-        {/* Action Buttons */}
+        {/* Action Buttons - both enabled for rating */}
         <div className="flex gap-3">
           <Button 
             className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-            disabled={selectedDecision?.recommendation !== 'APPROVE'}
+            onClick={handleApprove}
           >
             <CheckCircle className="w-4 h-4 mr-2" />
             Approve Transaction
           </Button>
           <Button 
             className="flex-1 bg-red-600 hover:bg-red-700 text-white"
-            disabled={selectedDecision?.recommendation === 'APPROVE'}
+            onClick={handleReject}
           >
             <XCircle className="w-4 h-4 mr-2" />
             Reject Transaction

@@ -225,6 +225,50 @@ const MOCK_DECISIONS: AIDecision[] = [
     confidence: 96,
     timestamp: '2026-02-06 14:22:48',
   },
+  {
+    id: 'DEC004',
+    transactionId: 'TX004',
+    counterparty: 'Nord Stream Partners AG',
+    country: 'Germany',
+    amount: 320000,
+    riskLevel: 'MEDIUM',
+    recommendation: 'REVIEW',
+    reasoning: [
+      'Partial ownership links to sanctioned entities',
+      'Requires enhanced due diligence',
+      'Transaction pattern within normal range',
+    ],
+    complianceChecks: {
+      sanctionsList: 'CLEAR',
+      countryRisk: 45,
+      transactionPattern: 'NORMAL',
+      regulatoryStatus: 'REVIEW_REQUIRED',
+    },
+    confidence: 85,
+    timestamp: '2026-02-06 14:20:12',
+  },
+  {
+    id: 'DEC005',
+    transactionId: 'TX005',
+    counterparty: 'Emirates Trading Corp.',
+    country: 'UAE',
+    amount: 178000,
+    riskLevel: 'LOW',
+    recommendation: 'APPROVE',
+    reasoning: [
+      'Verified counterparty in low-risk jurisdiction',
+      'Established trading relationship',
+      'All compliance checks passed',
+    ],
+    complianceChecks: {
+      sanctionsList: 'CLEAR',
+      countryRisk: 22,
+      transactionPattern: 'NORMAL',
+      regulatoryStatus: 'COMPLIANT',
+    },
+    confidence: 94,
+    timestamp: '2026-02-06 14:19:44',
+  },
 ];
 
 const MOCK_TRANSACTIONS: Transaction[] = [

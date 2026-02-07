@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { fetchReconciliationTasks, type ReconciliationTask } from '@/services/api.service';
+import { exportToPdf } from '@/lib/pdfExport';
 
 export function ReconciliationDashboard() {
   const [tasks, setTasks] = useState<ReconciliationTask[]>([]);
@@ -34,6 +35,23 @@ export function ReconciliationDashboard() {
     loadTasks();
   }, []);
   const [filter, setFilter] = useState<'all' | 'processing' | 'completed' | 'requires_review'>('all');
+  const [exportingId, setExportingId] = useState<string | null>(null);
+  const taskRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  const handleExportTask = async (task: ReconciliationTask) => {
+    setExportingId(task.id);
+    await exportToPdf(taskRefs.current[task.id] ?? null, `Reconciliation Report - ${task.eventType}`, [
+      { label: 'Task ID', value: task.id },
+      { label: 'Event Type', value: task.eventType },
+      { label: 'Triggered By', value: task.triggeredBy },
+      { label: 'Status', value: task.status },
+      { label: 'Transactions Scanned', value: String(task.transactionsScanned) },
+      { label: 'Flagged', value: String(task.transactionsFlagged) },
+      { label: 'Reconciled', value: String(task.transactionsReconciled) },
+      { label: 'Estimated Savings', value: `$${task.estimatedSavings}` },
+    ]);
+    setExportingId(null);
+  };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -190,79 +208,79 @@ export function ReconciliationDashboard() {
             transition={{ delay: idx * 0.05 }}
           >
             <Card className="bg-zinc-900 border-zinc-800 p-5 hover:border-zinc-700 transition-colors">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
-                  <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
-                    <h3 className="font-semibold text-white">{task.eventType}</h3>
-                    <Badge variant="outline" className={getPriorityColor(task.priority)}>
-                      {task.priority.toUpperCase()}
-                    </Badge>
-                    <Badge variant="outline" className={getStatusColor(task.status)}>
-                      {getStatusIcon(task.status)}
-                      <span className="ml-1">{task.status.replace('_', ' ').toUpperCase()}</span>
-                    </Badge>
+              <div ref={(el) => { if (el) taskRefs.current[task.id] = el; }}>
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex-1">
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
+                      <h3 className="font-semibold text-white">{task.eventType}</h3>
+                      <Badge variant="outline" className={getPriorityColor(task.priority)}>
+                        {task.priority.toUpperCase()}
+                      </Badge>
+                      <Badge variant="outline" className={getStatusColor(task.status)}>
+                        {getStatusIcon(task.status)}
+                        <span className="ml-1">{task.status.replace('_', ' ').toUpperCase()}</span>
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-4 text-xs text-zinc-400">
+                      <span className="flex items-center gap-1">
+                        <FileText className="w-3 h-3" />
+                        {task.id}
+                      </span>
+                      <span>Triggered by: {task.triggeredBy}</span>
+                      <span>Started: {task.startTime}</span>
+                      {task.completionTime && (
+                        <span className="text-green-500">Completed: {task.completionTime}</span>
+                      )}
+                    </div>
                   </div>
-                  
-                  <div className="flex items-center gap-4 text-xs text-zinc-400">
-                    <span className="flex items-center gap-1">
-                      <FileText className="w-3 h-3" />
-                      {task.id}
-                    </span>
-                    <span>Triggered by: {task.triggeredBy}</span>
-                    <span>Started: {task.startTime}</span>
-                    {task.completionTime && (
-                      <span className="text-green-500">Completed: {task.completionTime}</span>
-                    )}
+                  <div className="text-right">
+                    <div className="text-xs text-zinc-400 mb-1">Estimated Savings</div>
+                    <div className="text-xl font-bold text-green-500">${task.estimatedSavings}</div>
                   </div>
                 </div>
-
-                <div className="text-right">
-                  <div className="text-xs text-zinc-400 mb-1">Estimated Savings</div>
-                  <div className="text-xl font-bold text-green-500">${task.estimatedSavings}</div>
+                <div className="mb-4">
+                  <div className="flex items-center justify-between text-xs text-zinc-400 mb-2">
+                    <span>Reconciliation Progress</span>
+                    <span>{task.transactionsReconciled} / {task.transactionsFlagged} transactions</span>
+                  </div>
+                  <Progress
+                    value={(task.transactionsReconciled / task.transactionsFlagged) * 100}
+                    className="h-2"
+                  />
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
+                  <div className="bg-zinc-800/50 rounded-lg p-3">
+                    <div className="text-xs text-zinc-400 mb-1">Scanned</div>
+                    <div className="text-lg font-bold text-white">{task.transactionsScanned.toLocaleString()}</div>
+                  </div>
+                  <div className="bg-zinc-800/50 rounded-lg p-3">
+                    <div className="text-xs text-zinc-400 mb-1">Flagged</div>
+                    <div className="text-lg font-bold text-orange-500">{task.transactionsFlagged}</div>
+                  </div>
+                  <div className="bg-zinc-800/50 rounded-lg p-3">
+                    <div className="text-xs text-zinc-400 mb-1">Reconciled</div>
+                    <div className="text-lg font-bold text-green-500">{task.transactionsReconciled}</div>
+                  </div>
+                  <div className="bg-zinc-800/50 rounded-lg p-3">
+                    <div className="text-xs text-zinc-400 mb-1">Assigned To</div>
+                    <div className="text-sm font-semibold text-purple-400">{task.assignedTo || 'Unassigned'}</div>
+                  </div>
                 </div>
               </div>
-
-              {/* Progress */}
-              <div className="mb-4">
-                <div className="flex items-center justify-between text-xs text-zinc-400 mb-2">
-                  <span>Reconciliation Progress</span>
-                  <span>{task.transactionsReconciled} / {task.transactionsFlagged} transactions</span>
-                </div>
-                <Progress 
-                  value={(task.transactionsReconciled / task.transactionsFlagged) * 100} 
-                  className="h-2"
-                />
-              </div>
-
-              {/* Stats Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
-                <div className="bg-zinc-800/50 rounded-lg p-3">
-                  <div className="text-xs text-zinc-400 mb-1">Scanned</div>
-                  <div className="text-lg font-bold text-white">{task.transactionsScanned.toLocaleString()}</div>
-                </div>
-                <div className="bg-zinc-800/50 rounded-lg p-3">
-                  <div className="text-xs text-zinc-400 mb-1">Flagged</div>
-                  <div className="text-lg font-bold text-orange-500">{task.transactionsFlagged}</div>
-                </div>
-                <div className="bg-zinc-800/50 rounded-lg p-3">
-                  <div className="text-xs text-zinc-400 mb-1">Reconciled</div>
-                  <div className="text-lg font-bold text-green-500">{task.transactionsReconciled}</div>
-                </div>
-                <div className="bg-zinc-800/50 rounded-lg p-3">
-                  <div className="text-xs text-zinc-400 mb-1">Assigned To</div>
-                  <div className="text-sm font-semibold text-purple-400">{task.assignedTo || 'Unassigned'}</div>
-                </div>
-              </div>
-
-              {/* Actions */}
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" className="flex-1">
                   <FileText className="w-4 h-4 mr-2" />
                   View Details
                 </Button>
-                <Button variant="outline" size="sm" className="flex-1">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => handleExportTask(task)}
+                  disabled={exportingId === task.id}
+                >
                   <Download className="w-4 h-4 mr-2" />
-                  Export Report
+                  {exportingId === task.id ? 'Exporting...' : 'Export Report'}
                 </Button>
                 {task.status === 'requires_review' && (
                   <Button size="sm" className="flex-1 bg-purple-600 hover:bg-purple-700">
@@ -271,8 +289,6 @@ export function ReconciliationDashboard() {
                   </Button>
                 )}
               </div>
-
-              {/* Automation Notice */}
               {task.assignedTo === 'AI Engine' && task.status === 'completed' && (
                 <div className="mt-3 p-2 bg-green-500/5 border border-green-500/20 rounded flex items-center gap-2 text-xs text-green-400">
                   <CheckCircle2 className="w-3 h-3" />

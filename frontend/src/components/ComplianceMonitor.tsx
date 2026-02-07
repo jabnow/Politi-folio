@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -27,6 +27,7 @@ const Globe = () => <span>🌐</span>;
 const BookOpen = () => <span>📖</span>;
 import { motion } from 'framer-motion';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { exportToPdf } from '@/lib/pdfExport';
 
 interface ComplianceDocument {
   id: string;
@@ -126,16 +127,45 @@ const complianceScoreData = [
   { month: 'Feb', score: 96 }
 ];
 
-const jurisdictionData = [
-  { name: 'EU', value: 35, color: '#3b82f6' },
-  { name: 'USA', value: 28, color: '#8b5cf6' },
-  { name: 'UK', value: 15, color: '#06b6d4' },
-  { name: 'APAC', value: 22, color: '#10b981' }
-];
+// Jurisdiction coverage varies per selected document
+const getJurisdictionData = (jurisdiction: string) => {
+  const base = { EU: 35, USA: 28, UK: 15, APAC: 22 };
+  const colors: Record<string, string> = { EU: '#3b82f6', USA: '#8b5cf6', UK: '#06b6d4', APAC: '#10b981' };
+  const focusMap: Record<string, Record<string, number>> = {
+    EU: { EU: 52, USA: 22, UK: 14, APAC: 12 },
+    USA: { EU: 25, USA: 48, UK: 15, APAC: 12 },
+    UK: { EU: 38, USA: 28, UK: 24, APAC: 10 },
+    Singapore: { EU: 28, USA: 26, UK: 14, APAC: 32 },
+    Global: { EU: 30, USA: 28, UK: 18, APAC: 24 }
+  };
+  const values = focusMap[jurisdiction] ?? base;
+  return [
+    { name: 'EU', value: values.EU, color: colors.EU },
+    { name: 'USA', value: values.USA, color: colors.USA },
+    { name: 'UK', value: values.UK, color: colors.UK },
+    { name: 'APAC', value: values.APAC, color: colors.APAC }
+  ];
+};
 
 export function ComplianceMonitor() {
   const [documents, setDocuments] = useState(MOCK_DOCUMENTS);
   const [selectedDoc, setSelectedDoc] = useState<ComplianceDocument | null>(documents[0]);
+  const exportRef = useRef<HTMLDivElement>(null);
+  const [exporting, setExporting] = useState(false);
+
+  const handleExportAnalysis = async () => {
+    if (!selectedDoc) return;
+    setExporting(true);
+    await exportToPdf(exportRef.current, `Compliance Analysis - ${selectedDoc.title}`, [
+      { label: 'Document', value: selectedDoc.title },
+      { label: 'Source', value: selectedDoc.source },
+      { label: 'Jurisdiction', value: selectedDoc.jurisdiction },
+      { label: 'Impact', value: selectedDoc.impact },
+      { label: 'Requirements Extracted', value: String(selectedDoc.extractedRequirements) },
+      { label: 'AI Confidence', value: `${selectedDoc.confidence}%` },
+    ]);
+    setExporting(false);
+  };
 
   const getTypeIcon = (type: string) => {
     switch (type) {
@@ -359,9 +389,9 @@ export function ComplianceMonitor() {
                   <Zap className="w-4 h-4 mr-2" />
                   Auto-Generate Compliance Checklist
                 </Button>
-                <Button variant="outline" className="flex-1">
+                <Button variant="outline" className="flex-1" onClick={handleExportAnalysis} disabled={exporting}>
                   <Download className="w-4 h-4 mr-2" />
-                  Export Analysis
+                  {exporting ? 'Exporting...' : 'Export Analysis'}
                 </Button>
                 <Button variant="outline">
                   <Eye className="w-4 h-4 mr-2" />
@@ -370,14 +400,14 @@ export function ComplianceMonitor() {
               </div>
             </Card>
 
-            {/* Impact Analysis */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Impact Analysis - captured for PDF export */}
+            <div ref={exportRef} className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <Card className="bg-zinc-900 border-zinc-800 p-4">
                 <h3 className="text-sm font-semibold text-white mb-4">Regulatory Coverage by Jurisdiction</h3>
                 <ResponsiveContainer width="100%" height={200}>
                   <PieChart>
                     <Pie
-                      data={jurisdictionData}
+                      data={getJurisdictionData(selectedDoc.jurisdiction)}
                       cx="50%"
                       cy="50%"
                       labelLine={false}
