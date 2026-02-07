@@ -1,0 +1,42 @@
+name: Riddle Gate
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize]
+
+jobs:
+  riddle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate riddle answer
+        run: |
+          BODY=$(jq -r .pull_request.body "$GITHUB_EVENT_PATH")
+
+          if echo "$BODY" | grep -qi "LOSER_MODE: true"; then
+            echo " (¬_¬) Loser mode enabled. Infinite guesses allowed."
+            exit 0
+          fi
+
+          ANSWER=$(echo "$BODY" | grep -i "ANSWER:" | awk '{print tolower($2)}')
+
+          if [ -z "$ANSWER" ]; then
+            echo "୧(๑•̀ᗝ•́)૭ No ANSWER found in PR description."
+            exit 1
+          fi
+
+          STORED=$(grep "^$ANSWER=" .coderabbit/riddle.answer | cut -d':' -f2)
+          if [ -z "$STORED" ]; then
+            echo "( ,,⩌'︿'⩌,,) Unknown answer."
+            exit 1
+          fi
+
+          HASH=$(echo -n "$ANSWER" | sha256sum | awk '{print $1}')
+
+          if [ "$HASH" != "$STORED" ]; then
+            echo "ヽ(#`Д´)ﾉ WRONGGG HOW ARE YOU SO WRONGG."
+            exit 1
+          fi
+
+          echo "◝(^⌣^)◜ Riddle solved. You are a smartie!"
