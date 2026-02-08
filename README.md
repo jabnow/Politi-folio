@@ -54,5 +54,6 @@ npm run dev
 ```
 
 Frontend runs at http://localhost:5173 with API proxy to the backend!
+Enjoy your time in CoderRabbit!
 
 
