@@ -1,6 +1,7 @@
 # Politifolio
 
 Geopolitical intelligence platform for XRP Ledger reconciliation and risk monitoring.
+Demo at: https://politifolio.netlify.app/
 
 ## Project Structure
 
